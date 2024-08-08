@@ -115,12 +115,25 @@ def extract_prompts_loop(prompts, num_loop):
         ret_prompts.append(prompt)
     return ret_prompts
 
+'''
+Possible reason to use split_prompt:
+Dynamic Text Influence Across Video Frames:
 
+- Context Variation: Video generation often involves multiple scenes or contexts. 
+By splitting prompts, the model can apply different textual descriptions at different stages of the video, 
+creating a more coherent and contextually rich output.
+
+- Sequential Changes: As the video progresses, the context or scenario might change. 
+Splitting prompts allows the model to change the guiding textual input dynamically, 
+ensuring the generated video aligns with these changes.
+'''
 def split_prompt(prompt_text):
     if prompt_text.startswith("|0|"):
         # this is for prompts which look like
         # |0| a beautiful day |1| a sunny day |2| a rainy day
         # we want to parse it into a list of prompts with the loop index
+        # the output will be (['a beautiful day', 'a sunny day', 'a rainy day'], [0, 1, 2])
+
         prompt_list = prompt_text.split("|")[1:]
         text_list = []
         loop_idx = []
