@@ -117,7 +117,8 @@ def extract_prompts_loop(prompts, num_loop):
 
 '''
 Possible reason to use split_prompt:
-Dynamic Text Influence Across Video Frames:
+
+Dynamic Text Influence Across Video Frames
 
 - Context Variation: Video generation often involves multiple scenes or contexts. 
 By splitting prompts, the model can apply different textual descriptions at different stages of the video, 
@@ -126,6 +127,8 @@ creating a more coherent and contextually rich output.
 - Sequential Changes: As the video progresses, the context or scenario might change. 
 Splitting prompts allows the model to change the guiding textual input dynamically, 
 ensuring the generated video aligns with these changes.
+
+Fine-Tuning Video Segments
 '''
 def split_prompt(prompt_text):
     if prompt_text.startswith("|0|"):
@@ -216,9 +219,21 @@ def apply_mask_strategy(z, refs_x, mask_strategys, loop_i, align=None):
     masks = torch.stack(masks)
     return masks
 
+'''
+help to incorporate generated video frames into 
+subsequent iterations of video generation.
 
+RETURNS:
+ref_x: the encoded latent representation of the generated_video,
+serving as references (or conditions) for generating future frames in subsequent iterations.
+
+mask_strategy: a string that describes how the latent representations (ref_x) should be used 
+when generating the next set of video frames.
+
+condition_frame_edit: A parameter specifying any editing applied to the condition frames.
+'''
 def append_generated(vae, generated_video, refs_x, mask_strategy, loop_i, condition_frame_length, condition_frame_edit):
-    ref_x = vae.encode(generated_video)
+    ref_x = vae.encode(generated_video) # A list of reference frames used for conditioning in previous iterations.
     for j, refs in enumerate(refs_x):
         if refs is None:
             refs_x[j] = [ref_x[j]]
@@ -231,6 +246,10 @@ def append_generated(vae, generated_video, refs_x, mask_strategy, loop_i, condit
         mask_strategy[
             j
         ] += f"{loop_i},{len(refs)-1},-{condition_frame_length},0,{condition_frame_length},{condition_frame_edit}"
+        # len(refs)-1: Index of the last reference frame.
+        # -{condition_frame_length}: Negative value indicating backward reference to the number of frames used for conditioning.
+        # 0: Might specify how to mask these frames during generation.
+
     return refs_x, mask_strategy
 
 
