@@ -58,11 +58,17 @@ def get_layernorm(hidden_size: torch.Tensor, eps: float, affine: bool, use_kerne
         return nn.LayerNorm(hidden_size, eps, elementwise_affine=affine)
 
 
+'''
+1. Normalizes the input tensor x using the provided norm_func.
+2. Modulates the normalized tensor by applying a per-batch scaling (scale) and shifting (shift).
+The scaling and shifting are applied across the last dimension D, 
+and they are broadcasted across the sequence length N.
+'''
 def modulate(norm_func, x, shift, scale):
     # Suppose x is (B, N, D), shift is (B, D), scale is (B, D)
     dtype = x.dtype
     x = norm_func(x.to(torch.float32)).to(dtype)
-    x = x * (scale.unsqueeze(1) + 1) + shift.unsqueeze(1)
+    x = x * (scale.unsqueeze(1) + 1) + shift.unsqueeze(1) # scale.unsqueeze(1) and shift.unsqueeze(1) add a new dimension in the middle (expanding their shape from (B, D) to (B, 1, D)) to align with the shape of x (B, N, D).
     x = x.to(dtype)
     return x
 
