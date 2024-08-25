@@ -131,9 +131,9 @@ def main():
     save_fps = cfg.get("save_fps", fps // cfg.get("frame_interval", 1))
     multi_resolution = cfg.get("multi_resolution", None)
     batch_size = cfg.get("batch_size", 1)
-    num_sample = cfg.get("num_sample", 1)
+    num_sample = cfg.get("num_sample", 1) # Number of samples to generate per prompt.
     loop = cfg.get("loop", 1)
-    condition_frame_length = cfg.get("condition_frame_length", 5)
+    condition_frame_length = cfg.get("condition_frame_length", 5) # Number of frames used as a conditioning input in each loop iteration.
     condition_frame_edit = cfg.get("condition_frame_edit", 0.0)
     align = cfg.get("align", None)
 

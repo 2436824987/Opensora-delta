@@ -115,6 +115,12 @@ class PatchEmbed3D(nn.Module):
 
     def forward(self, x):
         """Forward function."""
+        '''
+        The function checks if the dimensions of the input tensor x (i.e., D, H, W) 
+        are divisible by the corresponding patch sizes (2, 4, 4).
+        If any of these dimensions are not divisible by their respective patch sizes, 
+        the tensor is padded using F.pad to ensure that the dimensions are divisible.
+        '''
         # padding
         _, _, D, H, W = x.size()
         if W % self.patch_size[2] != 0:
@@ -124,6 +130,10 @@ class PatchEmbed3D(nn.Module):
         if D % self.patch_size[0] != 0:
             x = F.pad(x, (0, 0, 0, 0, 0, self.patch_size[0] - D % self.patch_size[0]))
 
+        '''
+        x tensor is passed through a 3D convolutional layer (self.proj), 
+        which reduces the spatial and temporal resolution by the patch_size.
+        '''
         x = self.proj(x)  # (B C T H W)
         if self.norm is not None:
             D, Wh, Ww = x.size(2), x.size(3), x.size(4)
@@ -213,14 +223,18 @@ class Attention(nn.Module):
             q = q * self.scale
             attn = q @ k.transpose(-2, -1)  # translate attn to float32
             attn = attn.to(torch.float32)
+            '''
+            If self.is_causal is True, a causal mask is applied 
+            to prevent the model from attending to future tokens.
+            '''
             if self.is_causal:
                 causal_mask = torch.tril(torch.ones_like(attn), diagonal=0)
                 causal_mask = torch.where(causal_mask.bool(), 0, float('-inf'))
                 attn += causal_mask
-            attn = attn.softmax(dim=-1)
+            attn = attn.softmax(dim=-1) # attention scores are converted into probabilities
             attn = attn.to(dtype)  # cast back attn to original dtype
             attn = self.attn_drop(attn)
-            x = attn @ v
+            x = attn @ v # compute a weighted sum of the value
 
         x_output_shape = (B, N, C)
         if not enable_flash_attn:

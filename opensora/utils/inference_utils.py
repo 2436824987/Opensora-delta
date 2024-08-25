@@ -51,7 +51,7 @@ def get_save_path_name(
         save_path = f"{save_path}-{k}"
     return save_path
 
-
+# ? new_prompt = or +=
 def append_score_to_prompts(prompts, aes=None, flow=None, camera_motion=None):
     new_prompts = []
     for prompt in prompts:
