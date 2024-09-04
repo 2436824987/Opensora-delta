@@ -77,13 +77,13 @@ VBENCH_W=426
 function run_vbench() {
   if [ -z ${VBENCH_RES} ] || [ -z ${VBENCH_ASP_RATIO} ]; then
     eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 5 \
-      --prompt-path /home/yfeng/ygcheng/Open-Sora/assets/texts/VBench/prompts_per_dimension/subject_consistency.txt \
+      --prompt-path /home/yfeng/ygcheng/extracted_prompts.txt \
       --image-size $VBENCH_H $VBENCH_W \
       --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
   else
     if [ -z ${NUM_SAMPLING_STEPS} ]; then
         eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 5 \
-        --prompt-path /home/yfeng/ygcheng/Open-Sora/assets/texts/VBench/prompts_per_dimension/subject_consistency.txt \
+        --prompt-path /home/yfeng/ygcheng/extracted_prompts.txt \
         --resolution $VBENCH_RES --aspect-ratio $VBENCH_ASP_RATIO \
         --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
     else
