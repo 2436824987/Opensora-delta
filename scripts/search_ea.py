@@ -213,7 +213,6 @@ class EvolutionSearcher(object):
         self.candidates = []
         self.vis_dict = {}
 
-        self.max_fid = opt.max_fid
         # self.thres = opt.thres
         
         self.RandomForestClassifier = RandomForestClassifier(n_estimators=40)
@@ -644,34 +643,11 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--prompt",
-        type=str,
-        nargs="?",
-        default="a painting of a virus monster playing guitar",
-        help="the prompt to render"
-    )
-    parser.add_argument(
         "--outdir",
         type=str,
         nargs="?",
         help="dir to write results to",
         default="outputs/txt2img-samples"
-    )
-    parser.add_argument(
-        "--skip_grid",
-        action='store_true',
-        help="do not save a grid, only individual samples. Helpful when evaluating lots of samples",
-    )
-    parser.add_argument(
-        "--skip_save",
-        action='store_true',
-        help="do not save individual samples. For speed measurements.",
-    )
-    parser.add_argument(
-        "--ddim_steps",
-        type=int,
-        default=50,
-        help="number of ddim sampling steps",
     )
     parser.add_argument(
         "--plms",
@@ -684,11 +660,6 @@ def main():
         help="use dpm_solver sampling",
     )
     parser.add_argument(
-        "--laion400m",
-        action='store_true',
-        help="uses the LAION400M model",
-    )
-    parser.add_argument(
         "--fixed_code",
         action='store_true',
         help="if enabled, uses the same starting code across samples ",
@@ -698,12 +669,6 @@ def main():
         type=float,
         default=0.0,
         help="ddim eta (eta=0.0 corresponds to deterministic sampling",
-    )
-    parser.add_argument(
-        "--n_iter",
-        type=int,
-        default=2,
-        help="sample this often",
     )
     parser.add_argument(
         "--H",
@@ -736,12 +701,6 @@ def main():
         help="how many samples to produce for each given prompt. A.k.a. batch size",
     )
     parser.add_argument(
-        "--n_rows",
-        type=int,
-        default=0,
-        help="rows in the grid (default: n_samples)",
-    )
-    parser.add_argument(
         "--scale",
         type=float,
         default=7.5,
@@ -757,12 +716,6 @@ def main():
         type=str,
         default="/home/yfeng/ygcheng/src/Open-Sora/configs/opensora-v1-2/inference/sample_ea.py", # TODO
         help="path to config which constructs model",
-    )
-    parser.add_argument(
-        "--ckpt",
-        type=str,
-        default="models/ldm/stable-diffusion-v1/model.ckpt",
-        help="path to checkpoint of model",
     )
     parser.add_argument(
         "--seed",
@@ -788,11 +741,6 @@ def main():
         type=int,
         default=4,
         help="samples num",
-    )
-    parser.add_argument(
-        "--cal_fid",
-        type=bool,
-        default=False,
     )
     parser.add_argument(
         "--max_epochs",
@@ -825,16 +773,6 @@ def main():
         default=25,
     )
     parser.add_argument(
-        "--max_fid",
-        type=float,
-        default=3.,
-    )
-    parser.add_argument(
-        "--thres",
-        type=float,
-        default=0.2,
-    )
-    parser.add_argument(
         "--ref_mu",
         type=str,
         default='',
@@ -857,11 +795,6 @@ def main():
     opt = parser.parse_args()
 
     # TODO: Load and build models
-    # if opt.laion400m:
-    #     print("Falling back to LAION 400M model...")
-    #     opt.config = "configs/latent-diffusion/txt2img-1p4B-eval.yaml"
-    #     opt.ckpt = "models/ldm/text2img-large/model.ckpt"
-    #     opt.outdir = "outputs/txt2img-samples-laion400m"
     # ======================================================
     # Integrate Open-Sora Configurations
     # ======================================================
@@ -870,8 +803,6 @@ def main():
     # configs & runtime variables
     # ======================================================
     # == parse configs ==
-    # config = OmegaConf.load(f"{opt.config}")
-    # model = load_model_from_config(config, f"{opt.ckpt}")  # 加载模型
     cfg = read_config(f"{opt.config}") # Load Open-Sora config file
 
     # == device and dtype ==
