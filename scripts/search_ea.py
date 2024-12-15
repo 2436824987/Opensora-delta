@@ -85,26 +85,6 @@ choice = lambda x: x[np.random.randint(len(x))] if isinstance(
 # safety_feature_extractor = AutoFeatureExtractor.from_pretrained(safety_model_id)
 # safety_checker = StableDiffusionSafetyChecker.from_pretrained(safety_model_id)
 
-
-def load_model_from_config(config, ckpt, verbose=False):
-    print(f"Loading model from {ckpt}")
-    pl_sd = torch.load(ckpt, map_location="cpu")
-    if "global_step" in pl_sd:
-        print(f"Global Step: {pl_sd['global_step']}")
-    sd = pl_sd["state_dict"]
-    model = instantiate_from_config(config.model)
-    m, u = model.load_state_dict(sd, strict=False)
-    if len(m) > 0 and verbose:
-        print("missing keys:")
-        print(m)
-    if len(u) > 0 and verbose:
-        print("unexpected keys:")
-        print(u)
-
-    model.cuda()
-    model.eval()
-    return model
-
 def get_activations(data, model, batch_size=50, dims=2048, device='cpu',
                     num_workers=1):
 
@@ -206,10 +186,11 @@ def calculate_fid(data1, ref_mu, ref_sigma, batch_size, device, dims, num_worker
 
 class EvolutionSearcher(object):
 
-    def __init__(self, opt, model, text_encoder, time_step, ref_mu, ref_sigma, sampler, dataloader_info, batch_size, dpm_params=None):
+    def __init__(self, opt, model, text_encoder, vae, time_step, ref_mu, ref_sigma, sampler, dataloader_info, batch_size, dpm_params=None):
         self.opt = opt
         self.model = model
         self.text_encoder = text_encoder
+        self.vae = vae
         self.sampler = sampler
         self.time_step = time_step
         self.dataloader_info = dataloader_info
@@ -1001,10 +982,22 @@ def main():
     else:
         dpm_params = None
 
+    '''
+    rf.sample input params:
+    model: pre-trained t2v diffusion model 
+    text_encoder: pre-trained text embedding model
+    z: latent video, initialized as 'torch.randn(len(batch_prompts), vae.out_channels, *latent_size, device=device, dtype=dtype)'
+    prompts: texts used for conditioning
+    device: 'cpu' or 'gpu'
+    additional_args: model args of multi-resolution info
+    mask: read 'mask_strategy' from config; len(mask)=len(prompts), default is '[""] * len(prompts)'
+    guidance_scale
+    progress: show tqdm progress bar
+    ''' 
 
     ## build EA
     t = time.time()
-    searcher = EvolutionSearcher(opt=opt, model=model, text_encoder=text_encoder, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=scheduler, dataloader_info=None, batch_size=batch_size, dpm_params=dpm_params)
+    searcher = EvolutionSearcher(opt=opt, model=model, text_encoder=text_encoder, vae=vae, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=scheduler, dataloader_info=None, batch_size=batch_size, dpm_params=dpm_params)
     logging.info("Integrated Open-Sora Successfully ......")
     # searcher.search()
     # logging.info('total searching time = {:.2f} hours'.format((time.time() - t) / 3600))
