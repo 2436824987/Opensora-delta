@@ -43,6 +43,40 @@ from ldm.modules.diffusionmodules.util import make_ddim_sampling_parameters, mak
 from pytorch_fid.inception import InceptionV3
 import copy
 
+# Open-Sora related imports
+from pprint import pformat
+
+import colossalai
+import torch
+import torch.distributed as dist
+from colossalai.cluster import DistCoordinator
+from mmengine.runner import set_random_seed
+from tqdm import tqdm
+
+from opensora.acceleration.parallel_states import set_sequence_parallel_group
+from opensora.datasets import save_sample
+from opensora.datasets.aspect import get_image_size, get_num_frames
+from opensora.models.text_encoder.t5 import text_preprocessing
+from opensora.registry import MODELS, SCHEDULERS, build_module
+from opensora.utils.config_utils import read_config
+from opensora.utils.inference_utils import (
+    add_watermark,
+    append_generated,
+    append_score_to_prompts,
+    apply_mask_strategy,
+    collect_references_batch,
+    dframe_to_frame,
+    extract_json_from_prompts,
+    extract_prompts_loop,
+    get_save_path_name,
+    load_prompts,
+    merge_prompt,
+    prepare_multi_resolution_info,
+    refine_prompts_by_openai,
+    split_prompt,
+)
+from opensora.utils.misc import all_exists, create_logger, is_distributed, is_main_process, to_torch_dtype
+
 choice = lambda x: x[np.random.randint(len(x))] if isinstance(
     x, tuple) else choice(tuple(x))
 
@@ -736,7 +770,7 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/stable-diffusion/v1-inference.yaml", # TODO
+        default="/home/yfeng/ygcheng/src/Open-Sora/configs/opensora-v1-2/inference/sample_ea.py", # TODO
         help="path to config which constructs model",
     )
     parser.add_argument(
@@ -846,8 +880,10 @@ def main():
 
     seed_everything(opt.seed)
 
-    config = OmegaConf.load(f"{opt.config}")
-    model = load_model_from_config(config, f"{opt.ckpt}")  # 加载模型
+    # config = OmegaConf.load(f"{opt.config}")
+    # model = load_model_from_config(config, f"{opt.ckpt}")  # 加载模型
+    config = read_config(f"{opt.config}") # Load Open-Sora config file
+
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = model.to(device)
