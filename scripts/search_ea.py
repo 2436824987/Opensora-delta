@@ -27,7 +27,6 @@ import torch.nn.functional as F
 from scipy import linalg
 from sklearn.ensemble import RandomForestClassifier
 
-from ldm.util import instantiate_from_config
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.plms import PLMSSampler
 from ldm.models.diffusion.dpm_solver import DPMSolverSampler
@@ -37,10 +36,10 @@ from ldm.data.build_dataloader import build_dataloader
 from transformers import AutoFeatureExtractor
 import logging
 from torch.nn.functional import adaptive_avg_pool2d
-from pytorch_lightning import seed_everything
-from omegaconf import OmegaConf
+from mmengine.runner import set_random_seed
+# from pytorch_lightning import seed_everything
 from ldm.modules.diffusionmodules.util import make_ddim_sampling_parameters, make_ddim_timesteps, noise_like
-from pytorch_fid.inception import InceptionV3
+# from pytorch_fid.inception import InceptionV3
 import copy
 
 # Open-Sora related imports
@@ -88,101 +87,104 @@ choice = lambda x: x[np.random.randint(len(x))] if isinstance(
 def get_activations(data, model, batch_size=50, dims=2048, device='cpu',
                     num_workers=1):
 
-    model.eval()
+    # model.eval()
 
-    if batch_size > data.shape[0]:
-        print(('Warning: batch size is bigger than the data size. '
-               'Setting batch size to data size'))
-        batch_size = data.shape[0]
+    # if batch_size > data.shape[0]:
+    #     print(('Warning: batch size is bigger than the data size. '
+    #            'Setting batch size to data size'))
+    #     batch_size = data.shape[0]
 
-    pred_arr = np.empty((data.shape[0], dims))
-    start_idx = 0
+    # pred_arr = np.empty((data.shape[0], dims))
+    # start_idx = 0
 
-    for i in range(0, data.shape[0], batch_size):
-        if i + batch_size > data.shape[0]:
-            batch = data[i:, :, :, :]
-        else:
-            batch = data[i:i+batch_size, :, :, :]
-        batch = batch.to(device)
+    # for i in range(0, data.shape[0], batch_size):
+    #     if i + batch_size > data.shape[0]:
+    #         batch = data[i:, :, :, :]
+    #     else:
+    #         batch = data[i:i+batch_size, :, :, :]
+    #     batch = batch.to(device)
 
-        with torch.no_grad():
-            pred = model(batch)[0]
+    #     with torch.no_grad():
+    #         pred = model(batch)[0]
 
-        if pred.size(2) != 1 or pred.size(3) != 1:
-            pred = adaptive_avg_pool2d(pred, output_size=(1, 1))
+    #     if pred.size(2) != 1 or pred.size(3) != 1:
+    #         pred = adaptive_avg_pool2d(pred, output_size=(1, 1))
         
-        pred = pred.squeeze(3).squeeze(2).cpu().numpy()
+    #     pred = pred.squeeze(3).squeeze(2).cpu().numpy()
 
-        pred_arr[start_idx:start_idx + pred.shape[0]] = pred
+    #     pred_arr[start_idx:start_idx + pred.shape[0]] = pred
 
-        start_idx = start_idx + pred.shape[0]
+    #     start_idx = start_idx + pred.shape[0]
     
-    return pred_arr
+    # return pred_arr
+    pass
 
 def calculate_activation_statistics(datas, model, batch_size=50, dims=2048,
                                     device='cpu', num_workers=1):
-    act = get_activations(datas, model, batch_size, dims, device, num_workers)
-    mu = np.mean(act, axis=0)
-    sigma = np.cov(act, rowvar=False)
-    return mu, sigma
+    # act = get_activations(datas, model, batch_size, dims, device, num_workers)
+    # mu = np.mean(act, axis=0)
+    # sigma = np.cov(act, rowvar=False)
+    # return mu, sigma
+    pass
 
 def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
-    mu1 = np.atleast_1d(mu1)
-    mu2 = np.atleast_1d(mu2)
-    # mu2 = np.sum(mu2, axis=1) # To fix the shape issue
-    mu2 = np.mean(mu2, axis=1)
+    # mu1 = np.atleast_1d(mu1)
+    # mu2 = np.atleast_1d(mu2)
+    # # mu2 = np.sum(mu2, axis=1) # To fix the shape issue
+    # mu2 = np.mean(mu2, axis=1)
 
-    sigma1 = np.atleast_2d(sigma1)
-    sigma2 = np.atleast_2d(sigma2)
+    # sigma1 = np.atleast_2d(sigma1)
+    # sigma2 = np.atleast_2d(sigma2)
 
-    # print("mu1[0]: ", mu1[0])
-    # print("mu2[0][0]: ", mu2[0][0])
-    # print("mu2[1][1]: ", mu2[1][1])
-    # print("training  shape:", mu1.shape)
-    # print("reference shape:", mu2.shape)
-    # print("===========================")
-    # exit(0)
+    # # print("mu1[0]: ", mu1[0])
+    # # print("mu2[0][0]: ", mu2[0][0])
+    # # print("mu2[1][1]: ", mu2[1][1])
+    # # print("training  shape:", mu1.shape)
+    # # print("reference shape:", mu2.shape)
+    # # print("===========================")
+    # # exit(0)
 
-    assert mu1.shape == mu2.shape, \
-        'Training and test mean vectors have different lengths'
-    assert sigma1.shape == sigma2.shape, \
-        'Training and test covariances have different dimensions'
+    # assert mu1.shape == mu2.shape, \
+    #     'Training and test mean vectors have different lengths'
+    # assert sigma1.shape == sigma2.shape, \
+    #     'Training and test covariances have different dimensions'
 
-    diff = mu1 - mu2
+    # diff = mu1 - mu2
 
-    # Product might be almost singular
-    covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
-    if not np.isfinite(covmean).all():
-        msg = ('fid calculation produces singular product; '
-               'adding %s to diagonal of cov estimates') % eps
-        print(msg)
-        offset = np.eye(sigma1.shape[0]) * eps
-        covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
+    # # Product might be almost singular
+    # covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
+    # if not np.isfinite(covmean).all():
+    #     msg = ('fid calculation produces singular product; '
+    #            'adding %s to diagonal of cov estimates') % eps
+    #     print(msg)
+    #     offset = np.eye(sigma1.shape[0]) * eps
+    #     covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
 
-    # Numerical error might give slight imaginary component
-    if np.iscomplexobj(covmean):
-        if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
-            m = np.max(np.abs(covmean.imag))
-            raise ValueError('Imaginary component {}'.format(m))
-        covmean = covmean.real
+    # # Numerical error might give slight imaginary component
+    # if np.iscomplexobj(covmean):
+    #     if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
+    #         m = np.max(np.abs(covmean.imag))
+    #         raise ValueError('Imaginary component {}'.format(m))
+    #     covmean = covmean.real
 
-    tr_covmean = np.trace(covmean)
+    # tr_covmean = np.trace(covmean)
 
-    return (diff.dot(diff) + np.trace(sigma1)
-            + np.trace(sigma2) - 2 * tr_covmean)
+    # return (diff.dot(diff) + np.trace(sigma1)
+    #         + np.trace(sigma2) - 2 * tr_covmean)
+    pass
 
 def calculate_fid(data1, ref_mu, ref_sigma, batch_size, device, dims, num_workers=1):
     
-    block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
+    # block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
 
-    model = InceptionV3([block_idx]).to(device)
+    # model = InceptionV3([block_idx]).to(device)
 
-    m1, s1 = calculate_activation_statistics(data1, model, batch_size,
-                                            dims, device, num_workers)
+    # m1, s1 = calculate_activation_statistics(data1, model, batch_size,
+    #                                         dims, device, num_workers)
     
-    fid_value = calculate_frechet_distance(m1, s1, ref_mu, ref_sigma)
+    # fid_value = calculate_frechet_distance(m1, s1, ref_mu, ref_sigma)
 
-    return fid_value
+    pass
 
 class EvolutionSearcher(object):
 
@@ -564,8 +566,8 @@ class EvolutionSearcher(object):
         t1 = time.time()
         all_samples = np.array(all_samples)
         all_samples = torch.Tensor(all_samples)
-        fid = calculate_fid(data1=all_samples,ref_mu=self.ref_mu, ref_sigma=self.ref_sigma, batch_size=320, dims=2048, device='cuda')
-        logging.info('FID: ' + str(fid))
+        # fid = calculate_fid(data1=all_samples,ref_mu=self.ref_mu, ref_sigma=self.ref_sigma, batch_size=320, dims=2048, device='cuda')
+        # logging.info('FID: ' + str(fid))
 
         fid_time = time.time() - t1
         logging.info('sample_time: ' + str(sample_time) + ', fid_time: ' + str(fid_time))
@@ -870,7 +872,7 @@ def main():
     # == parse configs ==
     # config = OmegaConf.load(f"{opt.config}")
     # model = load_model_from_config(config, f"{opt.ckpt}")  # 加载模型
-    config = read_config(f"{opt.config}") # Load Open-Sora config file
+    cfg = read_config(f"{opt.config}") # Load Open-Sora config file
 
     # == device and dtype ==
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -890,8 +892,10 @@ def main():
     else:
         coordinator = None
         enable_sequence_parallelism = False
-    # set_random_seed(seed=cfg.get("seed", 1024))
-    seed_everything(opt.seed)
+    set_random_seed(seed=opt.seed)
+    # seed_everything(opt.seed)
+    os.makedirs(opt.outdir, exist_ok=True)
+    outpath = opt.outdir
 
     # == init logger ==
     os.makedirs(outpath, exist_ok=True)
@@ -946,21 +950,16 @@ def main():
     text_encoder.y_embedder = model.y_embedder  # HACK: for classifier-free guidance
 
     # TODO: Use Open-Sora rf sampler
+    # == build scheduler ==
     if opt.dpm_solver:
         sampler = DPMSolverSampler(model)  # 采样器
     elif opt.plms:
         sampler = PLMSSampler(model)
     else:
-        sampler = DDIMSampler(model)
-    # == build scheduler ==
-    scheduler = build_module(cfg.scheduler, SCHEDULERS)
+        # sampler = DDIMSampler(model)
+        sampler = build_module(cfg.scheduler, SCHEDULERS)
 
     # dataloader_info = build_dataloader(config, opt) # TODO: Pass reference data to ea searcher
-
-    os.makedirs(opt.outdir, exist_ok=True)
-    outpath = opt.outdir
-
-   
 
     batch_size = opt.n_samples
 
@@ -997,7 +996,7 @@ def main():
 
     ## build EA
     t = time.time()
-    searcher = EvolutionSearcher(opt=opt, model=model, text_encoder=text_encoder, vae=vae, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=scheduler, dataloader_info=None, batch_size=batch_size, dpm_params=dpm_params)
+    searcher = EvolutionSearcher(opt=opt, model=model, text_encoder=text_encoder, vae=vae, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=sampler, dataloader_info=None, batch_size=batch_size, dpm_params=dpm_params)
     logging.info("Integrated Open-Sora Successfully ......")
     # searcher.search()
     # logging.info('total searching time = {:.2f} hours'.format((time.time() - t) / 3600))
