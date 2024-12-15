@@ -923,7 +923,47 @@ def main():
 
     verbose = cfg.get("verbose", 1)
     progress_wrap = tqdm if verbose == 1 else (lambda x: x)
-    model = model.to(device)
+
+    # ======================================================
+    # build model & load weights
+    # ======================================================    
+    # model = model.to(device)
+    logging.info("Building models...")
+    # == build text-encoder and vae ==
+    text_encoder = build_module(cfg.text_encoder, MODELS, device=device)
+    vae = build_module(cfg.vae, MODELS).to(device, dtype).eval()
+
+    # == prepare video size ==
+    image_size = cfg.get("image_size", None)
+    if image_size is None:
+        resolution = cfg.get("resolution", None)
+        aspect_ratio = cfg.get("aspect_ratio", None)
+        assert (
+            resolution is not None and aspect_ratio is not None
+        ), "resolution and aspect_ratio must be provided if image_size is not provided"
+        image_size = get_image_size(resolution, aspect_ratio)
+    num_frames = get_num_frames(cfg.num_frames)
+
+    # == build diffusion model ==
+    input_size = (num_frames, *image_size)
+    latent_size = vae.get_latent_size(input_size)
+    model = (
+        build_module(
+            cfg.model,
+            MODELS,
+            input_size=latent_size,
+            in_channels=vae.out_channels,
+            caption_channels=text_encoder.output_dim,
+            model_max_length=text_encoder.model_max_length,
+            enable_sequence_parallelism=enable_sequence_parallelism,
+        )
+        .to(device, dtype)
+        .eval()
+    )
+    text_encoder.y_embedder = model.y_embedder  # HACK: for classifier-free guidance
+
+    # == build scheduler ==
+    scheduler = build_module(cfg.scheduler, SCHEDULERS)
 
     # TODO: Use Open-Sora rf sampler
     if opt.dpm_solver:
