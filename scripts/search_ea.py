@@ -206,9 +206,10 @@ def calculate_fid(data1, ref_mu, ref_sigma, batch_size, device, dims, num_worker
 
 class EvolutionSearcher(object):
 
-    def __init__(self, opt, model, time_step, ref_mu, ref_sigma, sampler, dataloader_info, batch_size, dpm_params=None):
+    def __init__(self, opt, model, text_encoder, time_step, ref_mu, ref_sigma, sampler, dataloader_info, batch_size, dpm_params=None):
         self.opt = opt
         self.model = model
+        self.text_encoder = text_encoder
         self.sampler = sampler
         self.time_step = time_step
         self.dataloader_info = dataloader_info
@@ -549,6 +550,7 @@ class EvolutionSearcher(object):
                         c = self.model.get_learned_conditioning(prompts)
                         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
                         sampled_timestep = np.array(cand)
+                        # TODO: Pass the corresponding params to rf scheduler
                         samples_ddim, _ = self.sampler.sample(S=opt.time_step,
                                                          conditioning=c,
                                                          batch_size=opt.n_samples,
@@ -1002,7 +1004,7 @@ def main():
 
     ## build EA
     t = time.time()
-    searcher = EvolutionSearcher(opt=opt, model=model, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=scheduler, dataloader_info=None, batch_size=batch_size, dpm_params=dpm_params)
+    searcher = EvolutionSearcher(opt=opt, model=model, text_encoder=text_encoder, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=scheduler, dataloader_info=None, batch_size=batch_size, dpm_params=dpm_params)
     logging.info("Integrated Open-Sora Successfully ......")
     # searcher.search()
     # logging.info('total searching time = {:.2f} hours'.format((time.time() - t) / 3600))
