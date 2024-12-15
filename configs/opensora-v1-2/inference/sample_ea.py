@@ -7,7 +7,7 @@ save_fps = 24
 prompt = "a beautiful waterfall"
 verbose = 1
 
-save_dir = "./samples/samples/"
+save_dir = "./samples/ea_samples/"
 seed = 42
 batch_size = 1
 multi_resolution = "STDiT2"
