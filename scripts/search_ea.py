@@ -872,11 +872,11 @@ def main():
     opt = parser.parse_args()
 
     # TODO: Load and build models
-    if opt.laion400m:
-        print("Falling back to LAION 400M model...")
-        opt.config = "configs/latent-diffusion/txt2img-1p4B-eval.yaml"
-        opt.ckpt = "models/ldm/text2img-large/model.ckpt"
-        opt.outdir = "outputs/txt2img-samples-laion400m"
+    # if opt.laion400m:
+    #     print("Falling back to LAION 400M model...")
+    #     opt.config = "configs/latent-diffusion/txt2img-1p4B-eval.yaml"
+    #     opt.ckpt = "models/ldm/text2img-large/model.ckpt"
+    #     opt.outdir = "outputs/txt2img-samples-laion400m"
     # ======================================================
     # Integrate Open-Sora Configurations
     # ======================================================
@@ -962,9 +962,6 @@ def main():
     )
     text_encoder.y_embedder = model.y_embedder  # HACK: for classifier-free guidance
 
-    # == build scheduler ==
-    scheduler = build_module(cfg.scheduler, SCHEDULERS)
-
     # TODO: Use Open-Sora rf sampler
     if opt.dpm_solver:
         sampler = DPMSolverSampler(model)  # 采样器
@@ -972,8 +969,10 @@ def main():
         sampler = PLMSSampler(model)
     else:
         sampler = DDIMSampler(model)
+    # == build scheduler ==
+    scheduler = build_module(cfg.scheduler, SCHEDULERS)
 
-    dataloader_info = build_dataloader(config, opt)
+    # dataloader_info = build_dataloader(config, opt) # TODO: Pass reference data to ea searcher
 
     os.makedirs(opt.outdir, exist_ok=True)
     outpath = opt.outdir
@@ -1003,9 +1002,10 @@ def main():
 
     ## build EA
     t = time.time()
-    searcher = EvolutionSearcher(opt=opt, model=model, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=sampler, dataloader_info=dataloader_info, batch_size=batch_size, dpm_params=dpm_params)
-    searcher.search()
-    logging.info('total searching time = {:.2f} hours'.format((time.time() - t) / 3600))
+    searcher = EvolutionSearcher(opt=opt, model=model, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=scheduler, dataloader_info=None, batch_size=batch_size, dpm_params=dpm_params)
+    logging.info("Integrated Open-Sora Successfully ......")
+    # searcher.search()
+    # logging.info('total searching time = {:.2f} hours'.format((time.time() - t) / 3600))
 
 if __name__ == '__main__':
     main()
