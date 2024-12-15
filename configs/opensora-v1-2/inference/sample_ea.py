@@ -5,6 +5,7 @@ fps = 24
 frame_interval = 1
 save_fps = 24
 prompt = "a beautiful waterfall"
+verbose = 1
 
 save_dir = "./samples/samples/"
 seed = 42

@@ -877,15 +877,52 @@ def main():
         opt.config = "configs/latent-diffusion/txt2img-1p4B-eval.yaml"
         opt.ckpt = "models/ldm/text2img-large/model.ckpt"
         opt.outdir = "outputs/txt2img-samples-laion400m"
-
-    seed_everything(opt.seed)
-
+    # ======================================================
+    # Integrate Open-Sora Configurations
+    # ======================================================
+    torch.set_grad_enabled(False)
+    # ======================================================
+    # configs & runtime variables
+    # ======================================================
+    # == parse configs ==
     # config = OmegaConf.load(f"{opt.config}")
     # model = load_model_from_config(config, f"{opt.ckpt}")  # 加载模型
     config = read_config(f"{opt.config}") # Load Open-Sora config file
 
+    # == device and dtype ==
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    cfg_dtype = cfg.get("dtype", "fp32")
+    assert cfg_dtype in ["fp16", "bf16", "fp32"], f"Unknown mixed precision {cfg_dtype}"
+    dtype = to_torch_dtype(cfg.get("dtype", "bf16"))
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
 
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    # == init distributed env ==
+    if is_distributed():
+        colossalai.launch_from_torch({})
+        coordinator = DistCoordinator()
+        enable_sequence_parallelism = coordinator.world_size > 1
+        if enable_sequence_parallelism:
+            set_sequence_parallel_group(dist.group.WORLD)
+    else:
+        coordinator = None
+        enable_sequence_parallelism = False
+    # set_random_seed(seed=cfg.get("seed", 1024))
+    seed_everything(opt.seed)
+
+    # == init logger ==
+    os.makedirs(outpath, exist_ok=True)
+    log_format = '%(asctime)s %(message)s'
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+        format=log_format, datefmt='%m/%d %I:%M:%S %p')
+    fh = logging.FileHandler(os.path.join(outpath, 'log.txt'))
+    fh.setFormatter(logging.Formatter(log_format))
+    logging.getLogger().addHandler(fh)
+
+    logging.info("Inference configuration:\n %s", pformat(cfg.to_dict()))
+
+    verbose = cfg.get("verbose", 1)
+    progress_wrap = tqdm if verbose == 1 else (lambda x: x)
     model = model.to(device)
 
     # TODO: Use Open-Sora rf sampler
@@ -901,14 +938,7 @@ def main():
     os.makedirs(opt.outdir, exist_ok=True)
     outpath = opt.outdir
 
-    # log
-    os.makedirs(outpath, exist_ok=True)
-    log_format = '%(asctime)s %(message)s'
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-        format=log_format, datefmt='%m/%d %I:%M:%S %p')
-    fh = logging.FileHandler(os.path.join(outpath, 'log.txt'))
-    fh.setFormatter(logging.Formatter(log_format))
-    logging.getLogger().addHandler(fh)
+   
 
     batch_size = opt.n_samples
 
