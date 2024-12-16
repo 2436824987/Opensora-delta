@@ -23,7 +23,7 @@ import numpy as np
 import torch as th
 import torch.distributed as dist
 import torch.nn.functional as F
-from scipy import linalg
+# from scipy import linalg
 
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.plms import PLMSSampler
@@ -705,7 +705,7 @@ class EvolutionSearcher(object):
                         progress=verbose >= 2,
                         mask=masks,
                     )
-                    samples = self.vae.decode(samples.to(dtype), num_frames=num_frames)
+                    samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames)
                     video_clips.append(samples)
 
                 # == save samples ==
