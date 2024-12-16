@@ -142,9 +142,6 @@ def main():
     sample_name = cfg.get("sample_name", None)
     prompt_as_path = cfg.get("prompt_as_path", False)
 
-    print("prompts=", prompts)
-    print("prompts_lem=", len(prompts))
-    print("batch_size=", batch_size))
 
     # == Iter over all samples ==
     for i in progress_wrap(range(0, len(prompts), batch_size)):
@@ -279,7 +276,6 @@ def main():
                 )
                 samples = vae.decode(samples.to(dtype), num_frames=num_frames)
                 video_clips.append(samples)
-
             # == save samples ==
             if is_main_process():
                 for idx, batch_prompt in enumerate(batch_prompts):

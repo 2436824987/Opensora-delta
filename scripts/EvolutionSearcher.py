@@ -610,6 +610,10 @@ class EvolutionSearcher(object):
         verbose = cfg.get("verbose", 1)
         progress_wrap = tqdm if verbose == 1 else (lambda x: x)
 
+        print("prompts=", prompts)
+        print("prompts_len=", len(prompts))
+        print("batch_size=", batch_size)
+
         # == Iter over all samples ==
         for i in progress_wrap(range(0, len(prompts), batch_size)):
             # == prepare batch prompts ==
@@ -629,6 +633,7 @@ class EvolutionSearcher(object):
                 multi_resolution, len(batch_prompts), image_size, num_frames, fps, device, self.dtype
             )
 
+            print("num_sample=", num_sample)
             # == Iter over number of sampling for one prompt ==
             for k in range(num_sample):
                 # == prepare save paths ==
@@ -644,6 +649,7 @@ class EvolutionSearcher(object):
                     )
                     for idx in range(len(batch_prompts))
                 ]
+                print(f"sample_{k},save_paths={save_paths}")
 
                 # NOTE: Skip if the sample already exists
                 # This is useful for resuming sampling VBench
