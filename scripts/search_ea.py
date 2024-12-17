@@ -76,6 +76,14 @@ from opensora.utils.inference_utils import (
 )
 from opensora.utils.misc import all_exists, create_logger, is_distributed, is_main_process, to_torch_dtype
 
+def str2bool(value):
+    """Convert string to boolean."""
+    if value.lower() in ['true', '1', 't', 'y', 'yes']:
+        return True
+    elif value.lower() in ['false', '0', 'f', 'n', 'no']:
+        return False
+    else:
+        raise ValueError(f"Invalid value for boolean: {value}")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -191,7 +199,7 @@ def main():
     )
     parser.add_argument(
         "--use_ddim_init_x",
-        type=bool,
+        type=str2bool, # the parser does not automatically convert strings like 'false' or 'true' into actual boolean values (False or True).
         default=False,
     )
     opt = parser.parse_args()
@@ -328,8 +336,8 @@ def main():
     t = time.time()
     searcher = EvolutionSearcher(opt=opt, model=model, text_encoder=text_encoder, vae=vae, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=sampler, dataloader_info=None, batch_size=batch_size, dtype=dtype, dpm_params=dpm_params)
     logging.info("Integrated Open-Sora Successfully ......")
-    searcher.generate_cand_video()
-    # searcher.search()
+    # searcher.generate_cand_video()
+    searcher.search()
     # logging.info('total searching time = {:.2f} hours'.format((time.time() - t) / 3600))
 
 if __name__ == '__main__':
