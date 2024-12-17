@@ -82,107 +82,7 @@ choice = lambda x: x[np.random.randint(len(x))] if isinstance(
 # safety_feature_extractor = AutoFeatureExtractor.from_pretrained(safety_model_id)
 # safety_checker = StableDiffusionSafetyChecker.from_pretrained(safety_model_id)
 
-def get_activations(data, model, batch_size=50, dims=2048, device='cpu',
-                    num_workers=1):
 
-    # model.eval()
-
-    # if batch_size > data.shape[0]:
-    #     print(('Warning: batch size is bigger than the data size. '
-    #            'Setting batch size to data size'))
-    #     batch_size = data.shape[0]
-
-    # pred_arr = np.empty((data.shape[0], dims))
-    # start_idx = 0
-
-    # for i in range(0, data.shape[0], batch_size):
-    #     if i + batch_size > data.shape[0]:
-    #         batch = data[i:, :, :, :]
-    #     else:
-    #         batch = data[i:i+batch_size, :, :, :]
-    #     batch = batch.to(device)
-
-    #     with torch.no_grad():
-    #         pred = model(batch)[0]
-
-    #     if pred.size(2) != 1 or pred.size(3) != 1:
-    #         pred = adaptive_avg_pool2d(pred, output_size=(1, 1))
-        
-    #     pred = pred.squeeze(3).squeeze(2).cpu().numpy()
-
-    #     pred_arr[start_idx:start_idx + pred.shape[0]] = pred
-
-    #     start_idx = start_idx + pred.shape[0]
-    
-    # return pred_arr
-    pass
-
-def calculate_activation_statistics(datas, model, batch_size=50, dims=2048,
-                                    device='cpu', num_workers=1):
-    # act = get_activations(datas, model, batch_size, dims, device, num_workers)
-    # mu = np.mean(act, axis=0)
-    # sigma = np.cov(act, rowvar=False)
-    # return mu, sigma
-    pass
-
-def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
-    # mu1 = np.atleast_1d(mu1)
-    # mu2 = np.atleast_1d(mu2)
-    # # mu2 = np.sum(mu2, axis=1) # To fix the shape issue
-    # mu2 = np.mean(mu2, axis=1)
-
-    # sigma1 = np.atleast_2d(sigma1)
-    # sigma2 = np.atleast_2d(sigma2)
-
-    # # print("mu1[0]: ", mu1[0])
-    # # print("mu2[0][0]: ", mu2[0][0])
-    # # print("mu2[1][1]: ", mu2[1][1])
-    # # print("training  shape:", mu1.shape)
-    # # print("reference shape:", mu2.shape)
-    # # print("===========================")
-    # # exit(0)
-
-    # assert mu1.shape == mu2.shape, \
-    #     'Training and test mean vectors have different lengths'
-    # assert sigma1.shape == sigma2.shape, \
-    #     'Training and test covariances have different dimensions'
-
-    # diff = mu1 - mu2
-
-    # # Product might be almost singular
-    # covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
-    # if not np.isfinite(covmean).all():
-    #     msg = ('fid calculation produces singular product; '
-    #            'adding %s to diagonal of cov estimates') % eps
-    #     print(msg)
-    #     offset = np.eye(sigma1.shape[0]) * eps
-    #     covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
-
-    # # Numerical error might give slight imaginary component
-    # if np.iscomplexobj(covmean):
-    #     if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
-    #         m = np.max(np.abs(covmean.imag))
-    #         raise ValueError('Imaginary component {}'.format(m))
-    #     covmean = covmean.real
-
-    # tr_covmean = np.trace(covmean)
-
-    # return (diff.dot(diff) + np.trace(sigma1)
-    #         + np.trace(sigma2) - 2 * tr_covmean)
-    pass
-
-def calculate_fid(data1, ref_mu, ref_sigma, batch_size, device, dims, num_workers=1):
-    
-    # block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
-
-    # model = InceptionV3([block_idx]).to(device)
-
-    # m1, s1 = calculate_activation_statistics(data1, model, batch_size,
-    #                                         dims, device, num_workers)
-    
-    # fid_value = calculate_frechet_distance(m1, s1, ref_mu, ref_sigma)
-
-    pass
 
 class EvolutionSearcher(object):
 
@@ -242,8 +142,8 @@ class EvolutionSearcher(object):
         if 'visited' in info:
             logging.info('cand: {} has visited!'.format(cand))
             return False
-        info['fid'] = self.get_cand_mse(opt=self.opt, cand=eval(cand))
-        logging.info('cand: {}, fid: {}'.format(cand, info['fid']))
+        info['mse'] = self.get_cand_mse(opt=self.opt, cand=eval(cand))
+        logging.info('cand: {}, mse: {}'.format(cand, info['mse']))
 
         info['visited'] = True
         return True
@@ -258,8 +158,8 @@ class EvolutionSearcher(object):
         if 'visited' in info:
             logging.info('cand: {} has visited!'.format(cand))
             return False
-        info['fid'] = self.get_cand_mse(opt=self.opt, cand=eval(cand))
-        logging.info('cand: {}, fid: {}'.format(cand, info['fid']))
+        info['mse'] = self.get_cand_mse(opt=self.opt, cand=eval(cand))
+        logging.info('cand: {}, mse: {}'.format(cand, info['mse']))
 
         info['visited'] = True
         return True
@@ -503,63 +403,12 @@ class EvolutionSearcher(object):
         # use_timestep = [use_timestep[i] + 1 for i in range(len(use_timestep))] 
         return use_timestep
     
-    def get_cand_fid(self, cand=None, opt=None, device='cuda'):
-        # with torch.no_grad():
-        #     t1 = time.time()
-        #     all_samples = list()
-        #     for itr, batch in enumerate(self.dataloader_info['validation_loader']):
-        #         # for k, v in batch.items():
-        #         #     if torch.is_tensor(v):
-        #         #         batch[k] = v.cuda()
-        #         prompts = batch['text']
-        #         uc = None
-        #         if opt.scale != 1.0:
-        #             uc = self.model.get_learned_conditioning(self.batch_size * [""])
-        #         if isinstance(prompts, tuple):
-        #             prompts = list(prompts)
-        #         c = self.model.get_learned_conditioning(prompts)
-        #         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
-        #         sampled_timestep = np.array(cand)
-        #         # TODO: Pass the corresponding params to rf scheduler
-        #         samples_ddim, _ = self.sampler.sample(S=opt.time_step,
-        #                                             conditioning=c,
-        #                                             batch_size=opt.n_samples,
-        #                                             shape=shape,
-        #                                             verbose=False,
-        #                                             unconditional_guidance_scale=opt.scale,
-        #                                             unconditional_conditioning=uc,
-        #                                             eta=opt.ddim_eta,
-        #                                             x_T=start_code,
-        #                                             sampled_timestep=sampled_timestep)
-        #         x_samples_ddim = self.model.decode_first_stage(samples_ddim)
-        #         x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
-        #         x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
-
-        #         # x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
-        #         x_checked_image = x_samples_ddim
-
-        #         x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
-
-        #         for x_sample in x_checked_image_torch:
-        #             all_samples.append(x_sample.cpu().numpy())
-
-        #         logging.info('samples: ' + str(len(all_samples)))
-            
-        #         if len(all_samples) > self.num_samples:
-        #             logging.info('samples: ' + str(len(all_samples)))
-        #             break
-        # sample_time = time.time() - t1
-        # # active model
-        # t1 = time.time()
-        # all_samples = np.array(all_samples)
-        # all_samples = torch.Tensor(all_samples)
-        # # fid = calculate_fid(data1=all_samples,ref_mu=self.ref_mu, ref_sigma=self.ref_sigma, batch_size=320, dims=2048, device='cuda')
-        # # logging.info('FID: ' + str(fid))
-
-        # fid_time = time.time() - t1
-        # logging.info('sample_time: ' + str(sample_time) + ', fid_time: ' + str(fid_time))
-        # return fid
-        pass
+    def get_cand_mse(self, cand=None, device='cuda'):
+        cand_latent = generate_cand_video(cand=cand)
+        # MSE Calculation
+        mse_loss = F.mse_loss(cand_latent, self.ref_latent)
+        print("MSE Loss:", mse_loss.item())
+        return mse_loss.item()
     
     def generate_cand_video(self, cand=None, device='cuda'):
         cfg = read_config(f"{self.opt.config}") # Load Open-Sora config file
@@ -598,7 +447,7 @@ class EvolutionSearcher(object):
         save_fps = cfg.get("save_fps", fps // cfg.get("frame_interval", 1))
         multi_resolution = cfg.get("multi_resolution", None)
         batch_size = cfg.get("batch_size", 1)
-        num_sample = cfg.get("num_sample", 1) # Number of samples to generate per prompt.
+        num_sample = cfg.get("num_sample", 1) # Number of samples to generate per prompt. #TODO: ea opt also has arg called num_samples
         loop = cfg.get("loop", 1)
         condition_frame_length = cfg.get("condition_frame_length", 5) # Number of frames used as a conditioning input in each loop iteration.
         condition_frame_edit = cfg.get("condition_frame_edit", 0.0)
@@ -714,30 +563,31 @@ class EvolutionSearcher(object):
                         mask=masks,
                     )
                     samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames)
-                    video_clips.append(samples)
+        return samples # TODO: For now, we assume num_sample=1 and samples only content one latent video
+        #             video_clips.append(samples)
 
-                # == save samples ==
-                if is_main_process():
-                    for idx, batch_prompt in enumerate(batch_prompts):
-                        if verbose >= 2:
-                            logger.info("Prompt: %s", batch_prompt)
-                        save_path = save_paths[idx]
-                        video = [video_clips[i][idx] for i in range(loop)]
-                        for i in range(1, loop):
-                            video[i] = video[i][:, dframe_to_frame(condition_frame_length) :]
-                        video = torch.cat(video, dim=1)
-                        save_path = save_sample(
-                            video,
-                            fps=save_fps,
-                            save_path=save_path,
-                            verbose=verbose >= 2,
-                        )
-                        if save_path.endswith(".mp4") and cfg.get("watermark", False):
-                            time.sleep(1)  # prevent loading previous generated video
-                            add_watermark(save_path)
-            start_idx += len(batch_prompts)
-        logger.info("Inference finished.")
-        logger.info("Saved %s samples to %s", start_idx, save_dir)
+        #         # == save samples ==
+        #         if is_main_process():
+        #             for idx, batch_prompt in enumerate(batch_prompts):
+        #                 if verbose >= 2:
+        #                     logger.info("Prompt: %s", batch_prompt)
+        #                 save_path = save_paths[idx]
+        #                 video = [video_clips[i][idx] for i in range(loop)]
+        #                 for i in range(1, loop):
+        #                     video[i] = video[i][:, dframe_to_frame(condition_frame_length) :]
+        #                 video = torch.cat(video, dim=1)
+        #                 save_path = save_sample(
+        #                     video,
+        #                     fps=save_fps,
+        #                     save_path=save_path,
+        #                     verbose=verbose >= 2,
+        #                 )
+        #                 if save_path.endswith(".mp4") and cfg.get("watermark", False):
+        #                     time.sleep(1)  # prevent loading previous generated video
+        #                     add_watermark(save_path)
+        #     start_idx += len(batch_prompts)
+        # logger.info("Inference finished.")
+        # logger.info("Saved %s samples to %s", start_idx, save_dir)
 
     def search(self):
         logging.info('population_num = {} select_num = {} mutation_num = {} crossover_num = {} random_num = {} max_epochs = {}'.format(
