@@ -10,6 +10,6 @@ python scripts/search_ea.py \
 --mutation_num 25 \
 --crossover_num 10 \
 --seed 1024 \
---use_ddim_init_x True \
+--use_ddim_init_x False \
 --ref_mu '/home/yfeng/ygcheng/src/AutoDiffusion/assets/coco2014_sigma.npy' \
 --ref_sigma '/home/yfeng/ygcheng/src/AutoDiffusion/assets/coco2014_sigma.npy' \

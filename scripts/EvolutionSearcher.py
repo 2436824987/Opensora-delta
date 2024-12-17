@@ -486,11 +486,12 @@ class EvolutionSearcher(object):
         return res
 
     def sample_active_subnet(self):
-        original_num_steps = self.sampler.ddpm_num_timesteps
-        use_timestep = [i for i in range(original_num_steps)]
-        random.shuffle(use_timestep)
-        use_timestep = use_timestep[:self.time_step]
-        # use_timestep = [use_timestep[i] + 1 for i in range(len(use_timestep))] 
+        # TODO: Swap the init timesteps with rf timesteps
+        # original_num_steps = self.sampler.ddpm_num_timesteps
+        # use_timestep = [i for i in range(original_num_steps)]
+        original_timestep = [(1.0 - i / self.sampler.num_sampling_steps) * self.sampler.num_timesteps for i in range(self.sampler.num_sampling_steps)] # Copied from rf __init__.py
+        random.shuffle(original_timestep)
+        use_timestep = original_timestep[:self.time_step] # time_step is set by ea searcher
         return use_timestep
     
     def sample_active_subnet_dpm(self):
@@ -758,7 +759,7 @@ class EvolutionSearcher(object):
             else:
                 res = self.mutate_init_x(x0=str(init_x), mutation_num=self.population_num - self.population_num // 2 - 1, m_prob=0.1)
             self.candidates += res
-
+        exit(0)
         while self.epoch < self.max_epochs:
             logging.info('epoch = {}'.format(self.epoch))
             self.update_top_k(
