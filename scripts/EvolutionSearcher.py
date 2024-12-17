@@ -122,7 +122,6 @@ class EvolutionSearcher(object):
         self.dpm_params = dpm_params
         self.device = device
         self.dtype = dtype
-        exit(0)
     
     def update_top_k(self, candidates, *, k, key, reverse=False):
         assert k in self.keep_top_k
@@ -142,7 +141,7 @@ class EvolutionSearcher(object):
         if 'visited' in info:
             logging.info('cand: {} has visited!'.format(cand))
             return False
-        info['mse'] = self.get_cand_mse(opt=self.opt, cand=eval(cand))
+        info['mse'] = self.get_cand_mse(cand=eval(cand))
         logging.info('cand: {}, mse: {}'.format(cand, info['mse']))
 
         info['visited'] = True
@@ -158,7 +157,7 @@ class EvolutionSearcher(object):
         if 'visited' in info:
             logging.info('cand: {} has visited!'.format(cand))
             return False
-        info['mse'] = self.get_cand_mse(opt=self.opt, cand=eval(cand))
+        info['mse'] = self.get_cand_mse(cand=eval(cand))
         logging.info('cand: {}, mse: {}'.format(cand, info['mse']))
 
         info['visited'] = True
@@ -404,8 +403,11 @@ class EvolutionSearcher(object):
         return use_timestep
     
     def get_cand_mse(self, cand=None, device='cuda'):
-        cand_latent = generate_cand_video(cand=cand)
+        cand_latent = self.generate_cand_video(cand=cand)
         # MSE Calculation
+        print(f"cand_latent.shape={cand_latent.shape}")
+        print(f"self.ref_latent.shape={self.ref_latent.shape}")
+        exit(0)
         mse_loss = F.mse_loss(cand_latent, self.ref_latent)
         print("MSE Loss:", mse_loss.item())
         return mse_loss.item()
@@ -500,7 +502,7 @@ class EvolutionSearcher(object):
                     )
                     for idx in range(len(batch_prompts))
                 ]
-                print(f"sample_{k},save_paths={save_paths}")
+                # print(f"sample_{k},save_paths={save_paths}")
 
                 # NOTE: Skip if the sample already exists
                 # This is useful for resuming sampling VBench
