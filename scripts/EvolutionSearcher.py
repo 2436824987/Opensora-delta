@@ -405,9 +405,9 @@ class EvolutionSearcher(object):
     def get_cand_mse(self, cand=None, device='cuda'):
         cand_latent = self.generate_cand_video(cand=cand)
         # MSE Calculation
-        print(f"cand_latent.shape={cand_latent.shape}")
-        print(f"self.ref_latent.shape={self.ref_latent.shape}")
-        exit(0)
+        # print(f"cand_latent.shape={cand_latent.shape}")
+        # print(f"self.ref_latent.shape={self.ref_latent.shape}")
+        # exit(0)
         mse_loss = F.mse_loss(cand_latent, self.ref_latent)
         print("MSE Loss:", mse_loss.item())
         return mse_loss.item()
@@ -563,8 +563,9 @@ class EvolutionSearcher(object):
                         additional_args=model_args,
                         progress=verbose >= 2,
                         mask=masks,
+                        ea_timesteps=cand=eval(cand),
                     )
-                    samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames)
+                    # samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames)
         return samples # TODO: For now, we assume num_sample=1 and samples only content one latent video
         #             video_clips.append(samples)
 
@@ -621,15 +622,15 @@ class EvolutionSearcher(object):
         while self.epoch < self.max_epochs:
             logging.info('epoch = {}'.format(self.epoch))
             self.update_top_k(
-                self.candidates, k=self.select_num, key=lambda x: self.vis_dict[x]['fid'])
+                self.candidates, k=self.select_num, key=lambda x: self.vis_dict[x]['mse'])
             self.update_top_k(
-                self.candidates, k=50, key=lambda x: self.vis_dict[x]['fid'])
+                self.candidates, k=50, key=lambda x: self.vis_dict[x]['mse'])
 
             logging.info('epoch = {} : top {} result'.format(
                 self.epoch, len(self.keep_top_k[50])))
             for i, cand in enumerate(self.keep_top_k[50]):
-                logging.info('No.{} {} fid = {}'.format(
-                    i + 1, cand, self.vis_dict[cand]['fid']))
+                logging.info('No.{} {} mse = {}'.format(
+                    i + 1, cand, self.vis_dict[cand]['mse']))
             
             if self.epoch + 1 == self.max_epochs:
                 break

@@ -233,7 +233,7 @@ def main():
     else:
         coordinator = None
         enable_sequence_parallelism = False
-    set_random_seed(seed=opt.seed)
+    set_random_seed(seed=cfg.get("seed", 1024)) # TODO: both ea and opensora have arg seed
     # seed_everything(opt.seed)
     os.makedirs(opt.outdir, exist_ok=True)
     outpath = opt.outdir
