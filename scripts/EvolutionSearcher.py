@@ -186,7 +186,7 @@ def calculate_fid(data1, ref_mu, ref_sigma, batch_size, device, dims, num_worker
 
 class EvolutionSearcher(object):
 
-    def __init__(self, opt, model, text_encoder, vae, time_step, ref_mu, ref_sigma, sampler, dataloader_info, batch_size, dtype, dpm_params=None):
+    def __init__(self, opt, model, text_encoder, vae, time_step, ref_mu, ref_sigma, sampler, dataloader_info, batch_size, device, dtype, dpm_params=None):
         self.opt = opt
         self.model = model
         self.text_encoder = text_encoder
@@ -217,6 +217,7 @@ class EvolutionSearcher(object):
         self.ref_sigma = np.load(ref_sigma)
 
         self.dpm_params = dpm_params
+        self.device = device
         self.dtype = dtype
     
     def update_top_k(self, candidates, *, k, key, reverse=False):
@@ -237,7 +238,7 @@ class EvolutionSearcher(object):
         if 'visited' in info:
             logging.info('cand: {} has visited!'.format(cand))
             return False
-        info['fid'] = self.get_cand_fid(opt=self.opt, cand=eval(cand))
+        info['fid'] = self.get_cand_mse(opt=self.opt, cand=eval(cand))
         logging.info('cand: {}, fid: {}'.format(cand, info['fid']))
 
         info['visited'] = True
@@ -253,10 +254,7 @@ class EvolutionSearcher(object):
         if 'visited' in info:
             logging.info('cand: {} has visited!'.format(cand))
             return False
-        # if self.RandomForestClassifier.predict_proba(np.asarray(eval(cand), dtype='float')[None, :])[0,1] < self.thres: # 拒绝
-        #     logging.info('cand: {} is not legal.'.format(cand))
-        #     return False
-        info['fid'] = self.get_cand_fid(opt=self.opt, cand=eval(cand))
+        info['fid'] = self.get_cand_mse(opt=self.opt, cand=eval(cand))
         logging.info('cand: {}, fid: {}'.format(cand, info['fid']))
 
         info['visited'] = True
@@ -502,7 +500,6 @@ class EvolutionSearcher(object):
         return use_timestep
     
     def get_cand_fid(self, cand=None, opt=None, device='cuda'):
-        # z = torch.randn(len(batch_prompts), vae.out_channels, *latent_size, device=device, dtype=dtype)
         # with torch.no_grad():
         #     t1 = time.time()
         #     all_samples = list()
@@ -611,9 +608,9 @@ class EvolutionSearcher(object):
         verbose = cfg.get("verbose", 1)
         progress_wrap = tqdm if verbose == 1 else (lambda x: x)
 
-        print("prompts=", prompts)
-        print("prompts_len=", len(prompts))
-        print("batch_size=", batch_size)
+        # print("prompts=", prompts)
+        # print("prompts_len=", len(prompts))
+        # print("batch_size=", batch_size)
 
         # == Iter over all samples ==
         for i in progress_wrap(range(0, len(prompts), batch_size)):
@@ -634,7 +631,7 @@ class EvolutionSearcher(object):
                 multi_resolution, len(batch_prompts), image_size, num_frames, fps, device, self.dtype
             )
 
-            print("num_sample=", num_sample)
+            # print("num_sample=", num_sample)
             # == Iter over number of sampling for one prompt ==
             for k in range(num_sample):
                 # == prepare save paths ==
@@ -759,7 +756,12 @@ class EvolutionSearcher(object):
             else:
                 res = self.mutate_init_x(x0=str(init_x), mutation_num=self.population_num - self.population_num // 2 - 1, m_prob=0.1)
             self.candidates += res
+        # Generate videos for each candidate
+        for idx, candidate in enumerate(self.candidates):
+            logging.info(f"Generating video for candidate {idx + 1}/{len(self.candidates)}: {candidate}")
+            self.generate_cand_video(cand=candidate, device=self.device)
         exit(0)
+        # TODO: Update the metric evaluation method
         while self.epoch < self.max_epochs:
             logging.info('epoch = {}'.format(self.epoch))
             self.update_top_k(

@@ -334,7 +334,7 @@ def main():
 
     ## build EA
     t = time.time()
-    searcher = EvolutionSearcher(opt=opt, model=model, text_encoder=text_encoder, vae=vae, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=sampler, dataloader_info=None, batch_size=batch_size, dtype=dtype, dpm_params=dpm_params)
+    searcher = EvolutionSearcher(opt=opt, model=model, text_encoder=text_encoder, vae=vae, time_step=opt.time_step, ref_mu=opt.ref_mu, ref_sigma=opt.ref_sigma, sampler=sampler, dataloader_info=None, batch_size=batch_size, device=device, dtype=dtype, dpm_params=dpm_params)
     logging.info("Integrated Open-Sora Successfully ......")
     # searcher.generate_cand_video()
     searcher.search()
