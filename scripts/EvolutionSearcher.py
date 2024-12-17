@@ -186,7 +186,7 @@ def calculate_fid(data1, ref_mu, ref_sigma, batch_size, device, dims, num_worker
 
 class EvolutionSearcher(object):
 
-    def __init__(self, opt, model, text_encoder, vae, time_step, ref_mu, ref_sigma, sampler, dataloader_info, batch_size, device, dtype, dpm_params=None):
+    def __init__(self, opt, model, text_encoder, vae, time_step, ref_latent, ref_sigma, sampler, dataloader_info, batch_size, device, dtype, dpm_params=None):
         self.opt = opt
         self.model = model
         self.text_encoder = text_encoder
@@ -213,12 +213,16 @@ class EvolutionSearcher(object):
 
         self.use_ddim_init_x = opt.use_ddim_init_x
 
-        self.ref_mu = np.load(ref_mu)
-        self.ref_sigma = np.load(ref_sigma)
+        # TODO: Load ref_latent
+        self.ref_latent = torch.load(ref_latent)
+        self.ref_sigma = None
+        #self.ref_mu = np.load(ref_mu)
+        # self.ref_sigma = np.load(ref_sigma)
 
         self.dpm_params = dpm_params
         self.device = device
         self.dtype = dtype
+        exit(0)
     
     def update_top_k(self, candidates, *, k, key, reverse=False):
         assert k in self.keep_top_k
