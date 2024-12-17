@@ -413,10 +413,6 @@ class EvolutionSearcher(object):
         return mse_loss.item()
     
     def generate_cand_video(self, cand=None, device='cuda'):
-        print(f"cand={cand}")
-        print(f"cand type={type(cand)}")
-        print(f"cand[0]={cand[0]}")
-        print(f"cand[0] type={type(cand[0])}")
         # exit(0)
         cfg = read_config(f"{self.opt.config}") # Load Open-Sora config file
         logger = create_logger()

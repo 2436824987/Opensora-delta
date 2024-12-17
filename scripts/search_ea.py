@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import sys
 import time
+from datetime import datetime
 
 import argparse
 import os
@@ -235,6 +236,8 @@ def main():
         enable_sequence_parallelism = False
     set_random_seed(seed=cfg.get("seed", 1024)) # TODO: both ea and opensora have arg seed
     # seed_everything(opt.seed)
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')  # Format the timestamp
+    outdir = f"{opt.outdir}_{timestamp}"
     os.makedirs(opt.outdir, exist_ok=True)
     outpath = opt.outdir
 
