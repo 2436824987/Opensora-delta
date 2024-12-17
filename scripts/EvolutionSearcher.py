@@ -95,6 +95,7 @@ class EvolutionSearcher(object):
         self.time_step = time_step
         self.dataloader_info = dataloader_info
         self.batch_size = batch_size
+        self.model_args = None
         # self.cfg = cfg
         ## EA hyperparameters
         self.max_epochs = opt.max_epochs
@@ -133,7 +134,7 @@ class EvolutionSearcher(object):
     
     def is_legal_before_search(self, cand):
         cand = eval(cand)
-        cand = sorted(cand)
+        cand = sorted(cand, reverse=True)
         cand = str(cand)
         if cand not in self.vis_dict:
             self.vis_dict[cand] = {}
@@ -149,7 +150,7 @@ class EvolutionSearcher(object):
     
     def is_legal(self, cand):
         cand = eval(cand)
-        cand = sorted(cand)
+        cand = sorted(cand, reverse=True)
         cand = str(cand)
         if cand not in self.vis_dict:
             self.vis_dict[cand] = {}
@@ -170,7 +171,7 @@ class EvolutionSearcher(object):
                 cand = self.sample_active_subnet_dpm()
             else:
                 cand = self.sample_active_subnet()
-            cand = sorted(cand)
+            cand = sorted(cand, reverse=True)
             cand = str(cand)
             if not self.is_legal_before_search(cand):
                 continue
@@ -185,7 +186,7 @@ class EvolutionSearcher(object):
                 cand = self.sample_active_subnet_dpm()
             else:
                 cand = self.sample_active_subnet()
-            cand = sorted(cand)
+            cand = sorted(cand, reverse=True)
             cand = str(cand)
             if not self.is_legal(cand):
                 continue
@@ -218,7 +219,7 @@ class EvolutionSearcher(object):
         while len(res) < cross_num and max_iters > 0:
             max_iters -= 1
             cand = random_cross()
-            cand = sorted(cand)
+            cand = sorted(cand, reverse=True)
             cand = str(cand)
             if not self.is_legal(cand):
                 continue
@@ -240,7 +241,8 @@ class EvolutionSearcher(object):
             cand = eval(cand)
 
             candidates = []
-            for i in range(self.sampler.ddpm_num_timesteps):
+            # for i in range(self.sampler.ddpm_num_timesteps):
+            for i in self.sampler.get_full_timesteps(additional_args=self.model_args): # TODO
                 if i not in cand:
                     candidates.append(i)
 
@@ -258,7 +260,7 @@ class EvolutionSearcher(object):
         while len(res) < mutation_num and max_iters > 0:
             max_iters -= 1
             cand = random_func()
-            cand = sorted(cand)
+            cand = sorted(cand, reverse=True)
             cand = str(cand)
             if not self.is_legal(cand):
                 continue
@@ -298,7 +300,7 @@ class EvolutionSearcher(object):
         while len(res) < mutation_num and max_iters > 0:
             max_iters -= 1
             cand = random_func()
-            cand = sorted(cand)
+            cand = sorted(cand, reverse=True)
             cand = str(cand)
             if not self.is_legal(cand):
                 continue
@@ -319,7 +321,8 @@ class EvolutionSearcher(object):
             cand = eval(cand)
 
             candidates = []
-            for i in range(self.sampler.ddpm_num_timesteps):
+            # for i in range(self.sampler.ddpm_num_timesteps):
+            for i in self.sampler.get_full_timesteps(additional_args=self.model_args):
                 if i not in cand:
                     candidates.append(i)
 
@@ -337,7 +340,7 @@ class EvolutionSearcher(object):
         while len(res) < mutation_num and max_iters > 0:
             max_iters -= 1
             cand = random_func()
-            cand = sorted(cand)
+            cand = sorted(cand, reverse=True)
             cand = str(cand)
             if not self.is_legal_before_search(cand):
                 continue
@@ -376,7 +379,7 @@ class EvolutionSearcher(object):
         while len(res) < mutation_num and max_iters > 0:
             max_iters -= 1
             cand = random_func()
-            cand = sorted(cand)
+            cand = sorted(cand, reverse=True)
             cand = str(cand)
             if not self.is_legal_before_search(cand):
                 continue
@@ -405,14 +408,16 @@ class EvolutionSearcher(object):
     def get_cand_mse(self, cand=None, device='cuda'):
         cand_latent = self.generate_cand_video(cand=cand)
         # MSE Calculation
-        # print(f"cand_latent.shape={cand_latent.shape}")
-        # print(f"self.ref_latent.shape={self.ref_latent.shape}")
-        # exit(0)
         mse_loss = F.mse_loss(cand_latent, self.ref_latent)
         print("MSE Loss:", mse_loss.item())
         return mse_loss.item()
     
     def generate_cand_video(self, cand=None, device='cuda'):
+        print(f"cand={cand}")
+        print(f"cand type={type(cand)}")
+        print(f"cand[0]={cand[0]}")
+        print(f"cand[0] type={type(cand[0])}")
+        # exit(0)
         cfg = read_config(f"{self.opt.config}") # Load Open-Sora config file
         logger = create_logger()
         # == load prompts ==
@@ -485,6 +490,8 @@ class EvolutionSearcher(object):
             model_args = prepare_multi_resolution_info(
                 multi_resolution, len(batch_prompts), image_size, num_frames, fps, device, self.dtype
             )
+            # TODO
+            self.model_args = model_args
 
             # print("num_sample=", num_sample)
             # == Iter over number of sampling for one prompt ==
@@ -563,7 +570,7 @@ class EvolutionSearcher(object):
                         additional_args=model_args,
                         progress=verbose >= 2,
                         mask=masks,
-                        ea_timesteps=cand=eval(cand),
+                        ea_timesteps=cand,
                     )
                     # samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames)
         return samples # TODO: For now, we assume num_sample=1 and samples only content one latent video
@@ -603,8 +610,8 @@ class EvolutionSearcher(object):
                 init_x = self.dpm_params['init_timesteps']
             else:
                 init_x = make_ddim_timesteps(ddim_discr_method=self.ddim_discretize, num_ddim_timesteps=self.time_step,
-                                                        num_ddpm_timesteps=self.sampler.ddpm_num_timesteps,verbose=False)
-            init_x = sorted(list(init_x))
+                                                        num_ddpm_timesteps=self.sampler.num_timesteps, verbose=False) # TODO
+            init_x = sorted(list(init_x), reverse=True)
             self.is_legal_before_search(str(init_x))
             self.candidates.append(str(init_x))
             self.get_random_before_search(self.population_num // 2)
@@ -613,11 +620,11 @@ class EvolutionSearcher(object):
             else:
                 res = self.mutate_init_x(x0=str(init_x), mutation_num=self.population_num - self.population_num // 2 - 1, m_prob=0.1)
             self.candidates += res
-        # Generate videos for each candidate
-        for idx, candidate in enumerate(self.candidates):
-            logging.info(f"Generating video for candidate {idx + 1}/{len(self.candidates)}: {candidate}")
-            self.generate_cand_video(cand=candidate, device=self.device)
-        exit(0)
+        # # Generate videos for each candidate
+        # for idx, candidate in enumerate(self.candidates):
+        #     logging.info(f"Generating video for candidate {idx + 1}/{len(self.candidates)}: {candidate}")
+        #     self.generate_cand_video(cand=candidate, device=self.device)
+        # exit(0)
         # TODO: Update the metric evaluation method
         while self.epoch < self.max_epochs:
             logging.info('epoch = {}'.format(self.epoch))

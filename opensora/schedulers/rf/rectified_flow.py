@@ -19,6 +19,10 @@ def timestep_transform(
     for key in ["height", "width", "num_frames"]:
         if model_kwargs[key].dtype == torch.float16:
             model_kwargs[key] = model_kwargs[key].float()
+    # try:
+    #     t = float(t)  # Convert to float if t is a string
+    # except ValueError:
+    #     raise ValueError(f"Expected a number for t, but got {type(t)}: {t}")
 
     t = t / num_timesteps
     resolution = model_kwargs["height"] * model_kwargs["width"]

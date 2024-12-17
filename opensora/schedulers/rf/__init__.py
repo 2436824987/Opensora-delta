@@ -105,3 +105,10 @@ class RFLOW:
 
     def training_losses(self, model, x_start, model_kwargs=None, noise=None, mask=None, weights=None, t=None):
         return self.scheduler.training_losses(model, x_start, model_kwargs, noise, mask, weights, t)
+
+    def get_full_timesteps(self, additional_args):
+        timesteps = [(1.0 - i / self.num_sampling_steps) * self.num_timesteps for i in range(self.num_sampling_steps)]
+        if self.use_timestep_transform:
+            timesteps = [timestep_transform(t, additional_args, num_timesteps=self.num_timesteps) for t in timesteps]
+        full_timesteps = [t.item() for t in timesteps]
+        return full_timesteps
