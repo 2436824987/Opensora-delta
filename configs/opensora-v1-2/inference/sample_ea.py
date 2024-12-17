@@ -7,6 +7,7 @@ save_fps = 24
 prompt = ["a beautiful waterfall",]
 verbose = 1
 
+save_latent = False
 ref_latent = "./assets/ea/"
 save_dir = "./samples/ea_samples/"
 seed = 42

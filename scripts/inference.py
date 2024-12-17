@@ -275,10 +275,11 @@ def main():
                     mask=masks,
                 )
                 # TODO: Save ref latent
-                latent_save_path = os.path.join(cfg.ref_latent, f"{resolution}_f{num_frames}.pt")
-                # Save the latent sample to the specified directory
-                os.makedirs(cfg.get("ref_latent", "./assets/ea/"), exist_ok=True)  # Ensure the directory exists
-                torch.save(samples, latent_save_path)  # Save the latent tensor
+                if cfg.get("save_latent", False):
+                    latent_save_path = os.path.join(cfg.ref_latent, f"{resolution}_f{num_frames}.pt")
+                    # Save the latent sample to the specified directory
+                    os.makedirs(cfg.get("ref_latent", "./assets/ea/"), exist_ok=True)  # Ensure the directory exists
+                    torch.save(samples, latent_save_path)  # Save the latent tensor
 
                 samples = vae.decode(samples.to(dtype), num_frames=num_frames)
                 video_clips.append(samples)
