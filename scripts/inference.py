@@ -273,7 +273,7 @@ def main():
                 masks = apply_mask_strategy(z, refs, ms, loop_i, align=align)
                 # TODO: Loop all ea_timesteps
                 try:
-                     for ea_i, ea_timesteps in enumerate(ea_timesteps_list):
+                    for ea_i, ea_timesteps in enumerate(ea_timesteps_list):
                         samples = scheduler.sample(
                             model,
                             text_encoder,
@@ -293,7 +293,7 @@ def main():
                             for idx, batch_prompt in enumerate(batch_prompts):
                                 if verbose >= 2:
                                     logger.info("Prompt: %s", batch_prompt)
-                                save_path = f"{save_paths[idx]}_ea_{ea_i}"
+                                save_path = f"{save_paths[idx]}_ea_{ea_i}" # TODO
                                 video = [video_clips[i][idx] for i in range(loop)]
                                 for i in range(1, loop):
                                     video[i] = video[i][:, dframe_to_frame(condition_frame_length) :]
@@ -304,6 +304,7 @@ def main():
                                     save_path=save_path,
                                     verbose=verbose >= 2,
                                 )
+                                logger.info("Saving video sample ea_{ea_i}... ")
                                 if save_path.endswith(".mp4") and cfg.get("watermark", False):
                                     time.sleep(1)  # prevent loading previous generated video
                                     add_watermark(save_path)
@@ -312,8 +313,9 @@ def main():
                     print(f"ea_timesteps_list is None!")
     
         start_idx += len(batch_prompts)
+    video_sample_num = start_idx * len(ea_timesteps_list)
     logger.info("Inference finished.")
-    logger.info("Saved %s samples to %s", start_idx, save_dir)
+    logger.info("Saved %s samples to %s", video_sample_num, save_dir)
 
 
 if __name__ == "__main__":
