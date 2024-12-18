@@ -236,21 +236,20 @@ def main():
         enable_sequence_parallelism = False
     set_random_seed(seed=cfg.get("seed", 1024)) # TODO: both ea and opensora have arg seed
     # seed_everything(opt.seed)
-    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')  # Format the timestamp
-    outdir = f"{opt.outdir}_{timestamp}"
-    os.makedirs(opt.outdir, exist_ok=True)
-    outpath = opt.outdir
 
     # == init logger ==
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')  # Format the timestamp
+    outpath = opt.outdir
     os.makedirs(outpath, exist_ok=True)
     log_format = '%(asctime)s %(message)s'
     logging.basicConfig(stream=sys.stdout, level=logging.INFO,
         format=log_format, datefmt='%m/%d %I:%M:%S %p')
-    fh = logging.FileHandler(os.path.join(outpath, 'log.txt'))
+    fh = logging.FileHandler(os.path.join(outpath, f"log.txt_{timestamp}"))
     fh.setFormatter(logging.Formatter(log_format))
     logging.getLogger().addHandler(fh)
 
     logging.info("Inference configuration:\n %s", pformat(cfg.to_dict()))
+    exit(0)
 
     # ======================================================
     # build model & load weights
