@@ -7,7 +7,7 @@ save_fps = 24
 prompt = ["a beautiful waterfall",]
 verbose = 1
 
-prompt_as_path = True
+use_prompt_as_path = True
 save_latent = True
 ref_latent = "./assets/ea/"
 save_dir = "./samples/samples/"
