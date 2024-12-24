@@ -304,7 +304,7 @@ def main():
                                     save_path=save_path,
                                     verbose=verbose >= 2,
                                 )
-                                logger.info("Saving video sample ea_{ea_i}... ")
+                                logger.info(f"Saving video sample ea_{ea_i}... ")
                                 if save_path.endswith(".mp4") and cfg.get("watermark", False):
                                     time.sleep(1)  # prevent loading previous generated video
                                     add_watermark(save_path)
