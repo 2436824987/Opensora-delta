@@ -43,9 +43,11 @@ def get_save_path_name(
     num_sample=1,  # number of samples to generate for one prompt
     k=None,  # kth sample
 ):
+    print(f"In get_save_path_name,prompt_as_path={prompt_as_path},prompt[:10]={prompt[:10]}")
+    exit(0)
     if sample_name is None:
         sample_name = "" if prompt_as_path else "sample"
-    sample_name_suffix = prompt if prompt_as_path else f"_{sample_idx:04d}"
+    sample_name_suffix = prompt.replace(" ", "_")[:10] if prompt_as_path else f"_{sample_idx:04d}"
     save_path = os.path.join(save_dir, f"{sample_name}{sample_name_suffix}")
     if num_sample != 1:
         save_path = f"{save_path}-{k}"

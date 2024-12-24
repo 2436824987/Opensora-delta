@@ -568,7 +568,7 @@ class EvolutionSearcher(object):
                         mask=masks,
                         ea_timesteps=cand,
                     )
-                    # samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames)
+                    samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames) # TODO: return video or latent
         return samples # TODO: For now, we assume num_sample=1 and samples only content one latent video
         #             video_clips.append(samples)
 
