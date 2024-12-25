@@ -9,8 +9,8 @@ verbose = 1
 
 save_latent = False
 ref_latent = "./assets/ea/"
-save_dir = "./samples/ea_samples/"
-ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step10_rl_scheduler/ea_timesteps.yaml"
+save_dir = "./samples/ea_samples_step20_search100/"
+ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step20_search100_rl_scheduler/ea_timesteps.yaml"
 seed = 42
 batch_size = 1
 multi_resolution = "STDiT2"
@@ -39,7 +39,7 @@ text_encoder = dict(
 scheduler = dict(
     type="rflow",
     use_timestep_transform=True,
-    num_sampling_steps=30,
+    num_sampling_steps=100,
     cfg_scale=7.0,
 )
 
