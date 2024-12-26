@@ -9,7 +9,7 @@ verbose = 1
 
 save_latent = False
 ref_latent = "./assets/ea/"
-save_dir = "./samples/ea_samples/"
+save_dir = "./samples/ea_samples_step20/"
 seed = 42
 batch_size = 1
 multi_resolution = "STDiT2"
@@ -38,7 +38,7 @@ text_encoder = dict(
 scheduler = dict(
     type="rflow",
     use_timestep_transform=True,
-    num_sampling_steps=100,
+    num_sampling_steps=30,
     cfg_scale=7.0,
 )
 
