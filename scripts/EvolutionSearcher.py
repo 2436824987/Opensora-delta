@@ -86,7 +86,7 @@ choice = lambda x: x[np.random.randint(len(x))] if isinstance(
 
 class EvolutionSearcher(object):
 
-    def __init__(self, opt, model, text_encoder, vae, time_step, ref_latent, ref_sigma, sampler, dataloader_info, batch_size, device, dtype, dpm_params=None):
+    def __init__(self, opt, model, text_encoder, vae, time_step, ref_latent_dir, ref_sigma, sampler, dataloader_info, batch_size, device, dtype, dpm_params=None):
         self.opt = opt
         self.model = model
         self.text_encoder = text_encoder
@@ -114,8 +114,8 @@ class EvolutionSearcher(object):
 
         self.use_ddim_init_x = opt.use_ddim_init_x
 
-        # TODO: Load ref_latent
-        self.ref_latent = torch.load(ref_latent)
+        # Initialize ref_latent as a list of tensors loaded from .pt files
+        self.ref_latent = self.load_ref_latent(ref_latent_dir)
         self.ref_sigma = None
         #self.ref_mu = np.load(ref_mu)
         # self.ref_sigma = np.load(ref_sigma)
@@ -123,6 +123,15 @@ class EvolutionSearcher(object):
         self.dpm_params = dpm_params
         self.device = device
         self.dtype = dtype
+    
+    def load_ref_latent(self, ref_latent_dir):
+        ref_latent_list = []
+        for file_name in os.listdir(ref_latent_dir):
+            if file_name.endswith('.pt'):
+                file_path = os.path.join(ref_latent_dir, file_name)
+                tensor = torch.load(file_path)
+                ref_latent_list.append(tensor)
+        return ref_latent_list
     
     def update_top_k(self, candidates, *, k, key, reverse=False):
         assert k in self.keep_top_k
