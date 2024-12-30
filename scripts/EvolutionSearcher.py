@@ -117,6 +117,7 @@ class EvolutionSearcher(object):
         # Initialize ref_latent as a list of tensors loaded from .pt files
         self.ref_latent = self.load_ref_latent(ref_latent_dir)
         self.ref_sigma = None
+        self.prompts = None
         
         #self.ref_mu = np.load(ref_mu)
         # self.ref_sigma = np.load(ref_sigma)
@@ -415,14 +416,29 @@ class EvolutionSearcher(object):
         # use_timestep = [use_timestep[i] + 1 for i in range(len(use_timestep))] 
         return use_timestep
     
+    # def get_cand_mse(self, cand=None, device='cuda'):
+    #     prompt_idx = random.randint(0, len(self.ref_latent) - 1)
+    #     cand_latent = self.generate_cand_video(cand=cand, prompt_idx=prompt_idx)
+    #     # MSE Calculation
+    #     ref_latent = self.ref_latent[prompt_idx]
+    #     mse_loss = F.mse_loss(cand_latent, ref_latent)
+    #     print("MSE Loss:", mse_loss.item())
+    #     return mse_loss.item()
     def get_cand_mse(self, cand=None, device='cuda'):
-        prompt_idx = random.randint(0, len(self.ref_latent) - 1)
-        cand_latent = self.generate_cand_video(cand=cand, prompt_idx=prompt_idx)
-        # MSE Calculation
-        ref_latent = self.ref_latent[prompt_idx]
-        mse_loss = F.mse_loss(cand_latent, ref_latent)
-        print("MSE Loss:", mse_loss.item())
-        return mse_loss.item()
+        # Sample 20 prompts to calculate the average MSE
+        train_prompt_num = 20
+        # prompt_idx = random.randint(0, len(self.ref_latent) - 1)
+        cands_mse = []
+        for i in range(train_prompt_num):
+            prompt_idx = i
+            cand_latent = self.generate_cand_video(cand=cand, prompt_idx=prompt_idx)
+            # MSE Calculation
+            ref_latent = self.ref_latent[prompt_idx]
+            mse_loss = F.mse_loss(cand_latent, ref_latent)
+            print("MSE Loss:", mse_loss.item())
+            cands_mse.append(mse_loss.item())
+        
+        return np.mean(cands_mse)
     
     # TODO: Use prompt_idx to select the prompt from the reference latent list
     def generate_cand_video(self, cand=None, prompt_idx=0, device='cuda'):
@@ -439,7 +455,7 @@ class EvolutionSearcher(object):
             else:
                 prompts = [cfg.get("prompt_generator", "")] * 1_000_000  # endless loop
                 logger.warning("No prompt is provided. Use endless loop instead.")
-        prompts = [prompts[prompt_idx]]
+        prompts = [self.prompts[prompt_idx]]
 
         # == prepare video size ==
         image_size = cfg.get("image_size", None)
