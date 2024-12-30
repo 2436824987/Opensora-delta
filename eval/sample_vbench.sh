@@ -55,14 +55,14 @@ echo "DOUBLE_FRAMES=${DOUBLE_FRAMES}"
 echo "QUAD_FRAMES=${QUAD_FRAMES}"
 echo "OCT_FRAMES=${OCT_FRAMES}"
 
-CMD="python /home/yfeng/ygcheng/Open-Sora/scripts/inference.py /home/yfeng/ygcheng/Open-Sora/configs/opensora-v1-2/inference/sample.py"
+CMD="python /home/yfeng/ygcheng/src/Open-Sora/scripts/inference.py /home/yfeng/ygcheng/src/Open-Sora/configs/opensora-v1-2/inference/sample_ea.py"
 if [[ $CKPT == *"ema"* ]]; then
   parentdir=$(dirname $CKPT)
   CKPT_BASE=$(basename $parentdir)_ema
 else
   CKPT_BASE=$(basename $CKPT)
 fi
-OUTPUT="/home/yfeng/ygcheng/Open-Sora/samples/samples_${MODEL_NAME}_${CKPT_BASE}"
+OUTPUT="/home/yfeng/ygcheng/src/Open-Sora/samples/ea_${MODEL_NAME}_${CKPT_BASE}"
 start=$(date +%s)
 DEFAULT_BS=1
 
@@ -76,36 +76,36 @@ VBENCH_W=426
 
 function run_vbench() {
   if [ -z ${VBENCH_RES} ] || [ -z ${VBENCH_ASP_RATIO} ]; then
-    eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 5 \
-      --prompt-path /home/yfeng/ygcheng/extracted_prompts_200.txt \
+    eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 1 \
+      --prompt-path /home/yfeng/ygcheng/src/Open-Sora/assets/texts/extracted_prompts_200.txt \
       --image-size $VBENCH_H $VBENCH_W \
       --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
   else
     if [ -z ${NUM_SAMPLING_STEPS} ]; then
-        eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 5 \
-        --prompt-path /home/yfeng/ygcheng/extracted_prompts_200.txt \
+        eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 1 \
+        --prompt-path /home/yfeng/ygcheng/src/Open-Sora/assets/texts/extracted_prompts_200.txt \
         --resolution $VBENCH_RES --aspect-ratio $VBENCH_ASP_RATIO \
         --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
     else
       if [ -z ${FLOW} ]; then
-        eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 5 \
+        eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 1 \
         --prompt-path assets/texts/VBench/all_dimension.txt \
         --resolution $VBENCH_RES --aspect-ratio $VBENCH_ASP_RATIO --num-sampling-steps ${NUM_SAMPLING_STEPS} \
         --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
       else
         if [ -z ${LLM_REFINE} ]; then
-          eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 5 \
+          eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 1 \
           --prompt-path assets/texts/VBench/all_dimension.txt \
           --resolution $VBENCH_RES --aspect-ratio $VBENCH_ASP_RATIO --num-sampling-steps ${NUM_SAMPLING_STEPS} --flow ${FLOW} \
           --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
         else
           if [ "${FLOW}" = "None" ]; then
-            eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 5 \
+            eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 1 \
             --prompt-path assets/texts/VBench/all_dimension.txt \
             --resolution $VBENCH_RES --aspect-ratio $VBENCH_ASP_RATIO --num-sampling-steps ${NUM_SAMPLING_STEPS} --llm-refine ${LLM_REFINE} \
             --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
           else
-            eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 5 \
+            eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 1 \
             --prompt-path assets/texts/VBench/all_dimension.txt \
             --resolution $VBENCH_RES --aspect-ratio $VBENCH_ASP_RATIO --num-sampling-steps ${NUM_SAMPLING_STEPS} --flow ${FLOW} --llm-refine ${LLM_REFINE} \
             --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
