@@ -117,6 +117,7 @@ class EvolutionSearcher(object):
         # Initialize ref_latent as a list of tensors loaded from .pt files
         self.ref_latent = self.load_ref_latent(ref_latent_dir)
         self.ref_sigma = None
+        
         #self.ref_mu = np.load(ref_mu)
         # self.ref_sigma = np.load(ref_sigma)
 
@@ -415,24 +416,30 @@ class EvolutionSearcher(object):
         return use_timestep
     
     def get_cand_mse(self, cand=None, device='cuda'):
-        cand_latent = self.generate_cand_video(cand=cand)
+        prompt_idx = random.randint(0, len(self.ref_latent) - 1)
+        cand_latent = self.generate_cand_video(cand=cand, prompt_idx=prompt_idx)
         # MSE Calculation
-        mse_loss = F.mse_loss(cand_latent, self.ref_latent)
+        ref_latent = self.ref_latent[prompt_idx]
+        mse_loss = F.mse_loss(cand_latent, ref_latent)
         print("MSE Loss:", mse_loss.item())
         return mse_loss.item()
     
-    def generate_cand_video(self, cand=None, device='cuda'):
+    # TODO: Use prompt_idx to select the prompt from the reference latent list
+    def generate_cand_video(self, cand=None, prompt_idx=0, device='cuda'):
         # exit(0)
         cfg = read_config(f"{self.opt.config}") # Load Open-Sora config file
         logger = create_logger()
         # == load prompts ==
-        prompts = cfg.get("prompt", None)
+        # prompts = cfg.get("prompt", None)
         start_idx = cfg.get("start_index", 0)
-        if prompts is None:
+        if self.prompts is None:
             if cfg.get("prompt_path", None) is not None:
                 prompts = load_prompts(cfg.prompt_path, start_idx, cfg.get("end_index", None))
+                self.prompts = prompts
             else:
                 prompts = [cfg.get("prompt_generator", "")] * 1_000_000  # endless loop
+                logger.warning("No prompt is provided. Use endless loop instead.")
+        prompts = [prompts[prompt_idx]]
 
         # == prepare video size ==
         image_size = cfg.get("image_size", None)
@@ -577,7 +584,7 @@ class EvolutionSearcher(object):
                         mask=masks,
                         ea_timesteps=cand,
                     )
-                    # samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames)
+                    samples = self.vae.decode(samples.to(self.dtype), num_frames=num_frames)
         return samples # TODO: For now, we assume num_sample=1 and samples only content one latent video
         #             video_clips.append(samples)
 
