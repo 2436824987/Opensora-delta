@@ -4,12 +4,12 @@ num_frames = 51
 fps = 24
 frame_interval = 1
 save_fps = 24
-prompt = ["a beautiful waterfall",]
+# prompt = ["a beautiful waterfall",]
 verbose = 1
 
 save_latent = False
 ref_latent = "./assets/ea/"
-save_dir = "./samples/ea_samples_step20/"
+save_dir = "./samples/ea_step20_numsampling30_vbench/"
 ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step20_rl_scheduler/ea_timesteps.yaml"
 seed = 42
 batch_size = 1

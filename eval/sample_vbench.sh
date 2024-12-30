@@ -62,7 +62,7 @@ if [[ $CKPT == *"ema"* ]]; then
 else
   CKPT_BASE=$(basename $CKPT)
 fi
-OUTPUT="/home/yfeng/ygcheng/src/Open-Sora/samples/ea_${MODEL_NAME}_${CKPT_BASE}"
+OUTPUT="/home/yfeng/ygcheng/src/Open-Sora/samples/${MODEL_NAME}_${CKPT_BASE}"
 start=$(date +%s)
 DEFAULT_BS=1
 

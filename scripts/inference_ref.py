@@ -306,9 +306,8 @@ def main():
                 #             add_watermark(save_path)
     
         start_idx += len(batch_prompts)
-    video_sample_num = start_idx * len(ea_timesteps_list)
     logger.info("Inference finished.")
-    logger.info("Saved %s samples to %s", video_sample_num, save_dir)
+    logger.info("Saved samples to %s", save_dir)
 
 
 if __name__ == "__main__":
