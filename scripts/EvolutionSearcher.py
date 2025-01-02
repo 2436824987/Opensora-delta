@@ -425,7 +425,7 @@ class EvolutionSearcher(object):
     #     print("MSE Loss:", mse_loss.item())
     #     return mse_loss.item()
     def get_cand_mse(self, cand=None, device='cuda'):
-        # Sample 20 prompts to calculate the average MSE
+        # TODO: Sample 20 prompts to calculate the average MSE
         train_prompt_num = 20
         # prompt_idx = random.randint(0, len(self.ref_latent) - 1)
         cands_mse = []
@@ -435,7 +435,7 @@ class EvolutionSearcher(object):
             # MSE Calculation
             ref_latent = self.ref_latent[prompt_idx]
             mse_loss = F.mse_loss(cand_latent, ref_latent)
-            print("MSE Loss:", mse_loss.item())
+            print(f"Sample {i} MSE Loss:", mse_loss.item())
             cands_mse.append(mse_loss.item())
         
         return np.mean(cands_mse)

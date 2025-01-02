@@ -293,7 +293,7 @@ def main():
                             for idx, batch_prompt in enumerate(batch_prompts):
                                 if verbose >= 2:
                                     logger.info("Prompt: %s", batch_prompt)
-                                save_path = f"{save_paths[idx]}_{ea_i}" # TODO
+                                save_path = f"{save_paths[idx]}-{ea_i}" # TODO: Must use "-" not "_" to mach VBench
                                 video = [video_clips[i][idx] for i in range(loop)]
                                 for i in range(1, loop):
                                     video[i] = video[i][:, dframe_to_frame(condition_frame_length) :]
