@@ -74,16 +74,17 @@ VBENCH_BS=1 # 80GB
 VBENCH_H=240
 VBENCH_W=426
 
+# TODO: if the file name is too long, should remove "--prompt-as-path"
 function run_vbench() {
   if [ -z ${VBENCH_RES} ] || [ -z ${VBENCH_ASP_RATIO} ]; then
-    eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 1 \
-      --prompt-path /home/yfeng/ygcheng/src/Open-Sora/assets/texts/scenery_val.txt \
+    eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --num-sample 1 \
+      --prompt-path /home/yfeng/ygcheng/src/Open-Sora/assets/texts/t2v_sora.txt \
       --image-size $VBENCH_H $VBENCH_W \
       --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
   else
     if [ -z ${NUM_SAMPLING_STEPS} ]; then
         eval $CMD --ckpt-path $CKPT --save-dir ${OUTPUT}_vbench --prompt-as-path --num-sample 1 \
-        --prompt-path /home/yfeng/ygcheng/src/Open-Sora/assets/texts/scenery_val.txt \
+        --prompt-path /home/yfeng/ygcheng/src/Open-Sora/assets/texts/t2v_sora.txt \
         --resolution $VBENCH_RES --aspect-ratio $VBENCH_ASP_RATIO \
         --batch-size $VBENCH_BS --num-frames $NUM_FRAMES --start-index $1 --end-index $2
     else
