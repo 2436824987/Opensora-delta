@@ -5,13 +5,14 @@ fps = 24
 frame_interval = 1
 save_fps = 24
 # prompt = ["a beautiful waterfall",]
-prompt_path = "/home/yfeng/ygcheng/src/Open-Sora/assets/texts/scenery_val.txt"
+prompt_path = "/home/yfeng/ygcheng/src/Open-Sora/assets/texts/t2v_sora.txt"
 verbose = 1
 
 save_latent = False
 ref_latent = "./assets/ea/"
 save_dir = "./samples/ea_step20_search100_scenery100/"
-ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step20_search100_scenery/ea_timesteps.yaml"
+# ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step20_search100_scenery/ea_timesteps.yaml"
+ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step20_rl_scheduler/ea_timesteps.yaml"
 seed = 42
 batch_size = 1
 multi_resolution = "STDiT2"
