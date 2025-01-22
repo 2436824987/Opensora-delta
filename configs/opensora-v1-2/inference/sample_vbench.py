@@ -1,4 +1,4 @@
-resolution = "240p"
+resolution = "480p"
 aspect_ratio = "9:16"
 num_frames = 51
 fps = 24
@@ -10,7 +10,7 @@ verbose = 1
 
 save_latent = False
 ref_latent = "./assets/ea/"
-save_dir = "./samples/ea_step20_search100_scenery100/"
+save_dir = "./samples/ea_sora_step20_search100_480p/"
 # ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step20_search100_scenery/ea_timesteps.yaml"
 ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step20_rl_scheduler/ea_timesteps.yaml"
 seed = 42
@@ -41,7 +41,7 @@ text_encoder = dict(
 scheduler = dict(
     type="rflow",
     use_timestep_transform=True,
-    num_sampling_steps=100,
+    num_sampling_steps=30,
     cfg_scale=7.0,
 )
 
