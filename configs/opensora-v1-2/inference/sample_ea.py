@@ -4,9 +4,13 @@ num_frames = 51
 fps = 24
 frame_interval = 1
 save_fps = 24
-
-save_dir = "./samples/51x480p/"
+# prompt = ["a beautiful waterfall",]
 prompt_path = "/home/yuge/src/Vbench/prompts/all_dimension.txt"
+verbose = 1
+
+save_latent = False
+ref_latent = "./assets/ea/"
+save_dir = "./samples/test/"
 seed = 42
 batch_size = 1
 multi_resolution = "STDiT2"

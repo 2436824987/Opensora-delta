@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=1 python scripts/inference.py configs/opensora-v1-2/inference/sample.py 
