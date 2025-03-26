@@ -1,17 +1,17 @@
-resolution = "240p"
+resolution = "480p"
 aspect_ratio = "9:16"
 num_frames = 51
 fps = 24
 frame_interval = 1
 save_fps = 24
 # prompt = ["a beautiful waterfall",]
-prompt_path = "/home/yfeng/ygcheng/src/VBench/prompts/prompts_per_category/scenery.txt"
+prompt_path = "/home/yuge/src/Vbench/prompts/all_dimension.txt"
 verbose = 1
 
 save_latent = False
 ref_latent = "./assets/ea/"
-save_dir = "./samples/ea_step20_numsampling30_scenery/"
-# ea_timesteps = "/home/yfeng/ygcheng/src/Open-Sora/outputs/search_step20_rl_scheduler/ea_timesteps.yaml"
+save_dir = "./samples/test/"
+ea_timesteps = "/home/yuge/src/Open-Sora/tmp/ea_timesteps.yaml"
 seed = 42
 batch_size = 1
 multi_resolution = "STDiT2"
