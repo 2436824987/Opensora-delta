@@ -41,6 +41,7 @@ class RFLOW:
         additional_args=None,
         mask=None,
         guidance_scale=None,
+        ea_timesteps=None, # TODO
         progress=True,
     ):
         # if no specific guidance scale is provided, use the default scale when initializing the scheduler
@@ -54,15 +55,18 @@ class RFLOW:
         model_args["y"] = torch.cat([model_args["y"], y_null], 0)
         if additional_args is not None:
             model_args.update(additional_args)
+        # TODO: Add ea_timesteps
+        # == prepare timesteps ==
+        if ea_timesteps is not None:
+            timesteps = ea_timesteps
+        else:
+            timesteps = [(1.0 - i / self.num_sampling_steps) * self.num_timesteps for i in range(self.num_sampling_steps)]
+            if self.use_discrete_timesteps:
+                timesteps = [int(round(t)) for t in timesteps]
+            timesteps = [torch.tensor([t] * z.shape[0], device=device) for t in timesteps]
 
-        # prepare timesteps
-        timesteps = [(1.0 - i / self.num_sampling_steps) * self.num_timesteps for i in range(self.num_sampling_steps)]
-        if self.use_discrete_timesteps:
-            timesteps = [int(round(t)) for t in timesteps]
-        timesteps = [torch.tensor([t] * z.shape[0], device=device) for t in timesteps]
         if self.use_timestep_transform:
             timesteps = [timestep_transform(t, additional_args, num_timesteps=self.num_timesteps) for t in timesteps]
-
         if mask is not None:
             noise_added = torch.zeros_like(mask, dtype=torch.bool)
             noise_added = noise_added | (mask == 1)
@@ -101,3 +105,10 @@ class RFLOW:
 
     def training_losses(self, model, x_start, model_kwargs=None, noise=None, mask=None, weights=None, t=None):
         return self.scheduler.training_losses(model, x_start, model_kwargs, noise, mask, weights, t)
+
+    def get_full_timesteps(self, additional_args):
+        timesteps = [(1.0 - i / self.num_sampling_steps) * self.num_timesteps for i in range(self.num_sampling_steps)]
+        if self.use_timestep_transform:
+            timesteps = [timestep_transform(t, additional_args, num_timesteps=self.num_timesteps) for t in timesteps]
+        full_timesteps = [t.item() for t in timesteps]
+        return full_timesteps

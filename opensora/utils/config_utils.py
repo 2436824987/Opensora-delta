@@ -70,6 +70,9 @@ def parse_args(training=False):
         parser.add_argument("--aes", default=None, type=float, help="aesthetic score")
         parser.add_argument("--flow", default=None, type=float, help="flow score")
         parser.add_argument("--camera-motion", default=None, type=str, help="camera motion")
+
+        # ea
+        parser.add_argument("--save-latent", default=None, type=bool, help="save sample latent")
     # ======================================================
     # Training
     # ======================================================
